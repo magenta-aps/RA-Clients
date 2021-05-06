@@ -47,7 +47,7 @@ class ModelClient(ModelClientBase):
         """
         session = await self._verify_session()
 
-        uuid = obj.get_uuid()
+        uuid = obj.uuid
         # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
         # for now, uuid is included, and has to be excluded when converted to json
         jsonified = uuid_to_str(
