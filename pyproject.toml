@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "raclients"
+version = "0.1.0"
+description = ""
+authors = ["Emil Madsen <emil@magenta.dk>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+ramodels = "^0.3.1"
+aiohttp = "^3.7.4"
+more-itertools = "^8.7.0"
+tqdm = "^4.60.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+reorder-python-imports = "^2.5.0"
+black = "^21.5b0"
+flake8 = "^3.9.1"
+mypy = "^0.812"
+pre-commit = "^2.12.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
