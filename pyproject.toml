@@ -1,22 +1,28 @@
 [tool.poetry]
 name = "raclients"
 version = "0.1.0"
-description = ""
-authors = ["Emil Madsen <emil@magenta.dk>"]
+description = "Clients for OS2mo/LoRa"
+authors = ["Magenta <info@magenta.dk>"]
+license = "MPL-2.0"
+readme = "README.md"
+homepage = "https://magenta.dk/"
+repository = "https://git.magenta.dk/rammearkitektur/ra-clients"
+keywords = ["os2mo", "lora"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-ramodels = "^0.3.1"
 aiohttp = "^3.7.4"
 more-itertools = "^8.7.0"
 tqdm = "^4.60.0"
+pydantic = "^1.8.1"
+ramodels = "^0.3.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
-reorder-python-imports = "^2.5.0"
+pytest = "^6.2.4"
 black = "^21.5b0"
 flake8 = "^3.9.1"
 mypy = "^0.812"
+reorder-python-imports = "^2.5.0"
 pre-commit = "^2.12.1"
 
 [build-system]
