@@ -18,7 +18,7 @@ from ramodels.mo import Employee
 from ramodels.mo import Engagement
 from ramodels.mo import EngagementAssociation
 from ramodels.mo import Manager
-from ramodels.mo import OrgUnit
+from ramodels.mo import OrganisationUnit
 
 from raclients.modelclientbase import ModelClientBase
 from raclients.util import uuid_to_str
@@ -28,7 +28,7 @@ MoObj = Type[RABase]
 
 class ModelClient(ModelClientBase):
     __mo_path_map = {
-        OrgUnit: "/service/ou/create",
+        OrganisationUnit: "/service/ou/create",
         Employee: "/service/e/create",
         Engagement: "/service/details/create",
         EngagementAssociation: "/service/details/create",
