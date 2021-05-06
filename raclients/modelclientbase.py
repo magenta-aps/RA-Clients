@@ -9,6 +9,7 @@ from asyncio import as_completed
 from asyncio import gather
 from asyncio import sleep
 from contextlib import asynccontextmanager
+from functools import partial
 from itertools import groupby
 from itertools import starmap
 from typing import Callable
@@ -19,6 +20,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Type
+from uuid import UUID
 
 from aiohttp import ClientSession
 from aiohttp import TCPConnector
@@ -32,15 +34,21 @@ class ModelClientBase(ABC):
     def __init__(
         self,
         base_url: AnyHttpUrl,
-        session_factory: Callable[[], ClientSession] = lambda: ClientSession(
-            connector=TCPConnector(limit=20)
-        ),
         chunk_size: int = 100,
+        saml_token: Optional[UUID] = None,
+        session_factory: Callable[[], ClientSession] = partial(
+            ClientSession, connector=TCPConnector(limit=20)
+        ),
     ):
         # connection logic
         self._base_url = base_url
         self._chunk_size = chunk_size
+        if saml_token:
+            session_factory = partial(
+                session_factory, headers={"SESSION": str(saml_token)}
+            )
         self._session_factory = session_factory
+
         self._session: Optional[ClientSession] = None
 
     @asynccontextmanager
@@ -66,29 +74,28 @@ class ModelClientBase(ABC):
         :param delay: Number of sleeps in-between
         :return:
         """
-        await self._verify_session()
-        async with self._session_factory() as session:
+        session = await self._verify_session()
 
-            async def check_endpoint(url, response):
-                for _ in range(attempts):
-                    try:
-                        resp = await session.get(url)
-                        resp.raise_for_status()
-                        if response in await resp.json():
-                            return
-                        raise Exception("Invalid response")
-                    except Exception as exp:
-                        print(exp)
-                        await sleep(delay)
-                raise Exception("Unable to connect")
+        async def check_endpoint(url, response):
+            for _ in range(attempts):
+                try:
+                    resp = await session.get(url)
+                    resp.raise_for_status()
+                    if response in await resp.json():
+                        return
+                    raise Exception("Invalid response")
+                except Exception as exp:
+                    print(exp)
+                    await sleep(delay)
+            raise Exception("Unable to connect")
 
-            healthcheck_tuples = self._get_healthcheck_tuples()
-            healthcheck_tuples = [
-                (self._base_url + subpath, response)
-                for subpath, response in healthcheck_tuples
-            ]
-            tasks = starmap(check_endpoint, healthcheck_tuples)
-            await gather(*tasks)
+        healthcheck_tuples = self._get_healthcheck_tuples()
+        healthcheck_tuples = [
+            (self._base_url + subpath, response)
+            for subpath, response in healthcheck_tuples
+        ]
+        tasks = starmap(check_endpoint, healthcheck_tuples)
+        await gather(*tasks)
 
     async def _post_to_backend(
         self, current_type: Type[RABase], data: Iterable[RABase]
