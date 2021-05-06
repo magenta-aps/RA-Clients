@@ -3,35 +3,29 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # --------------------------------------------------------------------------------------
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from asyncio import as_completed
 from asyncio import gather
-from asyncio import run
 from asyncio import sleep
-
+from contextlib import asynccontextmanager
 from itertools import groupby
 from itertools import starmap
 from typing import Callable
-from contextlib import asynccontextmanager
-from typing import Type
-from typing import Dict
-from typing import cast
-from typing import Iterator
-from typing import Any
-from typing import List
-from typing import Tuple
 from typing import Coroutine
+from typing import Dict
 from typing import Iterable
+from typing import List
 from typing import Optional
+from typing import Tuple
 from typing import Type
+
+from aiohttp import ClientSession
 from aiohttp import TCPConnector
 from more_itertools import chunked
-from tqdm import tqdm
-
-
 from pydantic import AnyHttpUrl
-from aiohttp import ClientSession
 from ramodels.base import RABase
+from tqdm import tqdm
 
 
 class ModelClientBase(ABC):
@@ -96,7 +90,9 @@ class ModelClientBase(ABC):
             tasks = starmap(check_endpoint, healthcheck_tuples)
             await gather(*tasks)
 
-    async def _post_to_backend(self, current_type: Type[RABase], data: Iterable[RABase]):
+    async def _post_to_backend(
+        self, current_type: Type[RABase], data: Iterable[RABase]
+    ):
         """
         wrapper allows passing list of mox objs, for individual posting
         :param current_type:
@@ -132,10 +128,7 @@ class ModelClientBase(ABC):
 
         raise TypeError(f"unknown type: {current_type}")
 
-
-    async def _submit_payloads(
-        self, objs: Iterable[RABase], disable_progressbar=False
-    ):
+    async def _submit_payloads(self, objs: Iterable[RABase], disable_progressbar=False):
         objs = list(objs)
         groups = groupby(objs, lambda x: type(x).__name__)
         chunked_groups: List[Tuple[str, Iterable[List[RABase]]]] = [
