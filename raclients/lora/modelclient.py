@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # --------------------------------------------------------------------------------------
 from asyncio import run
+from typing import Any
 from typing import Dict
 from typing import Iterable
 from typing import List
@@ -19,7 +20,8 @@ from ramodels.lora import Organisation
 from raclients.modelclientbase import ModelClientBase
 from raclients.util import uuid_to_str
 
-LoraObj = Type[RABase]
+# TODO: Change to from ramodels.lora import RABase
+LoraBase = Type[RABase]
 
 
 class ModelClient(ModelClientBase):
@@ -35,10 +37,12 @@ class ModelClient(ModelClientBase):
     def _get_healthcheck_tuples(self) -> List[Tuple[str, str]]:
         return [("/version/", "lora_version")]
 
-    def _get_path_map(self) -> Dict[RABase, str]:
+    def _get_path_map(self) -> Dict[LoraBase, str]:
         return self.__mox_path_map
 
-    async def _post_single_to_backend(self, current_type: Type[LoraObj], obj: LoraObj):
+    async def _post_single_to_backend(
+        self, current_type: Type[LoraBase], obj: LoraBase
+    ) -> Any:
         """
 
         :param current_type: Redundant, only pass it because we already have it
@@ -60,39 +64,41 @@ class ModelClient(ModelClientBase):
                 json=jsonified,
             ) as response:
                 response.raise_for_status()
+                return await response.json()
         else:  # put
             async with session.put(
                 generic_url + f"/{uuid}",
                 json=jsonified,
             ) as response:
                 response.raise_for_status()
+                return await response.json()
 
     async def load_lora_objs(
-        self, objs: Iterable[LoraObj], disable_progressbar: bool = False
-    ):
+        self, objs: Iterable[LoraBase], disable_progressbar: bool = False
+    ) -> List[Any]:
         """
         lazy init client session to ensure created within async context
         :param objs:
         :param disable_progressbar:
         :return:
         """
-        await self._submit_payloads(objs, disable_progressbar=disable_progressbar)
+        return await self._submit_payloads(
+            objs, disable_progressbar=disable_progressbar
+        )
 
 
 if __name__ == "__main__":
 
     async def main():
-        client = ModelClient(base_url="https://morademo.magenta.dk")
+        client = ModelClient()
         async with client.context():
-            pass
-            # await client.load_lora_objs(
-            #    [
-            #        Organisation.from_simplified_fields(
-            #            uuid=UUID("456362c4-0ee4-4e5e-a72c-751239745e64"),
-            #            name="test_org_name",
-            #            user_key="test_org_user_key",
-            #        )
-            #    ]
-            # )
+            from uuid import UUID
+
+            organisation = Organisation.from_simplified_fields(
+                uuid=UUID("6d9c5332-1f68-9046-0003-d027b0963ba5"),
+                name="test_org_name",
+                user_key="test_org_user_key",
+            )
+            print(await client.load_lora_objs([organisation]))
 
     run(main())

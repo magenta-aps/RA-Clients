@@ -12,6 +12,8 @@ from contextlib import asynccontextmanager
 from functools import partial
 from itertools import groupby
 from itertools import starmap
+from typing import Any
+from typing import cast
 from typing import Coroutine
 from typing import Dict
 from typing import Iterable
@@ -97,7 +99,7 @@ class ModelClientBase(ABC):
 
     async def _post_to_backend(
         self, current_type: Type[RABase], data: Iterable[RABase]
-    ):
+    ) -> List[Any]:
         """
         wrapper allows passing list of mox objs, for individual posting
         :param current_type:
@@ -105,35 +107,37 @@ class ModelClientBase(ABC):
         :return:
         """
         await self._verify_session()
-        await gather(
-            *map(
-                lambda obj: self._post_single_to_backend(
-                    current_type=current_type, obj=obj
-                ),
-                data,
-            )
+        return cast(
+            List[Any],
+            await gather(
+                *map(
+                    lambda obj: self._post_single_to_backend(
+                        current_type=current_type, obj=obj
+                    ),
+                    data,
+                )
+            ),
         )
 
-    async def __submit(self, data: Iterable[RABase]):
+    async def _submit_chunk(self, data: Iterable[RABase]) -> List[Any]:
         """
         maps the object appropriately to either MO or LoRa
 
         :param data: An iterable of objects of the *same* type!
         :return:
         """
-
         data = list(data)
         current_type = type(data[0])
 
         assert all([isinstance(obj, current_type) for obj in data])
+        if current_type not in self._get_path_map():
+            raise TypeError(f"unknown type: {current_type}")
 
-        if current_type in self._get_path_map():
-            await self._post_to_backend(current_type, data)
-            return
+        return await self._post_to_backend(current_type, data)
 
-        raise TypeError(f"unknown type: {current_type}")
-
-    async def _submit_payloads(self, objs: Iterable[RABase], disable_progressbar=False):
+    async def _submit_payloads(
+        self, objs: Iterable[RABase], disable_progressbar=False
+    ) -> List[Any]:
         objs = list(objs)
         groups = groupby(objs, lambda x: type(x).__name__)
         chunked_groups: List[Tuple[str, Iterable[List[RABase]]]] = [
@@ -141,11 +145,13 @@ class ModelClientBase(ABC):
             for type_name, objs in groups
         ]
         chunked_tasks: List[Tuple[str, List[Coroutine]]] = [
-            (type_name, list(map(self.__submit, chunks)))
+            (type_name, list(map(self._submit_chunk, chunks)))
             for type_name, chunks in chunked_groups
         ]
         if not chunked_tasks or all([not tasks for _, tasks in chunked_tasks]):
-            return
+            return []
+
+        results = []
         for key, tasks in chunked_tasks:
             for f in tqdm(
                 as_completed(tasks),
@@ -154,7 +160,9 @@ class ModelClientBase(ABC):
                 desc=key,
                 disable=disable_progressbar,
             ):
-                await f
+                result = await f
+                results.extend(result)
+        return results
 
     @abstractmethod
     def _get_healthcheck_tuples(self) -> List[Tuple[str, str]]:
@@ -165,5 +173,7 @@ class ModelClientBase(ABC):
         pass
 
     @abstractmethod
-    async def _post_single_to_backend(self, current_type: Type[RABase], obj: RABase):
+    async def _post_single_to_backend(
+        self, current_type: Type[RABase], obj: RABase
+    ) -> Any:
         pass
