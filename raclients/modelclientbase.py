@@ -36,9 +36,7 @@ class ModelClientBase(ABC):
         base_url: AnyHttpUrl,
         chunk_size: int = 100,
         saml_token: Optional[UUID] = None,
-        session_factory: Callable[[], ClientSession] = partial(
-            ClientSession, connector=TCPConnector(limit=20)
-        ),
+        session_factory: ClientSession = ClientSession,
     ):
         # connection logic
         self._base_url = base_url
@@ -47,6 +45,7 @@ class ModelClientBase(ABC):
             session_factory = partial(
                 session_factory, headers={"SESSION": str(saml_token)}
             )
+        session_factory = partial(session_factory, connector=TCPConnector(limit=20))
         self._session_factory = session_factory
 
         self._session: Optional[ClientSession] = None

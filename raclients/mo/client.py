@@ -40,7 +40,7 @@ class ModelClient(ModelClientBase):
         super().__init__(base_url, *args, **kwargs)
 
     def _get_healthcheck_tuples(self) -> List[Tuple[str, str]]:
-        return [("/version", "mo_version")]
+        return [("/version/", "mo_version")]
 
     def _get_path_map(self) -> Dict[RABase, str]:
         return self.__mo_path_map
@@ -71,14 +71,15 @@ if __name__ == "__main__":
     async def main():
         client = ModelClient()
         async with client.context():
-            await client.load_mo_objs(
-                [
-                    Employee.from_simplified_fields(
-                        uuid=UUID("456362c4-0ee4-4e5e-a72c-751239745e64"),
-                        name="test_org_name",
-                        user_key="test_org_user_key",
-                    )
-                ]
-            )
+            pass
+#            await client.load_mo_objs(
+#                [
+#                    Employee.from_simplified_fields(
+#                        uuid=UUID("456362c4-0ee4-4e5e-a72c-751239745e64"),
+#                        name="test_org_name",
+#                        user_key="test_org_user_key",
+#                    )
+#                ]
+#            )
 
     run(main())
