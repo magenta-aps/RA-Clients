@@ -33,7 +33,7 @@ class ModelClient(ModelClientBase):
         super().__init__(base_url, *args, **kwargs)
 
     def _get_healthcheck_tuples(self) -> List[Tuple[str, str]]:
-        return [("/version", "lora_version")]
+        return [("/version/", "lora_version")]
 
     def _get_path_map(self) -> Dict[RABase, str]:
         return self.__mox_path_map
