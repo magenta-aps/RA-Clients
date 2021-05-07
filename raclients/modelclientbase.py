@@ -12,7 +12,6 @@ from contextlib import asynccontextmanager
 from functools import partial
 from itertools import groupby
 from itertools import starmap
-from typing import Callable
 from typing import Coroutine
 from typing import Dict
 from typing import Iterable

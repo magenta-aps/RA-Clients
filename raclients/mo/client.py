@@ -9,7 +9,6 @@ from typing import Iterable
 from typing import List
 from typing import Tuple
 from typing import Type
-from uuid import UUID
 
 from pydantic import AnyHttpUrl
 from ramodels.base import RABase
@@ -72,14 +71,15 @@ if __name__ == "__main__":
         client = ModelClient()
         async with client.context():
             pass
-#            await client.load_mo_objs(
-#                [
-#                    Employee.from_simplified_fields(
-#                        uuid=UUID("456362c4-0ee4-4e5e-a72c-751239745e64"),
-#                        name="test_org_name",
-#                        user_key="test_org_user_key",
-#                    )
-#                ]
-#            )
+
+    #            await client.load_mo_objs(
+    #                [
+    #                    Employee.from_simplified_fields(
+    #                        uuid=UUID("456362c4-0ee4-4e5e-a72c-751239745e64"),
+    #                        name="test_org_name",
+    #                        user_key="test_org_user_key",
+    #                    )
+    #                ]
+    #            )
 
     run(main())
