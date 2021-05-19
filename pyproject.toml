@@ -15,7 +15,8 @@ aiohttp = "^3.7.4"
 more-itertools = "^8.7.0"
 tqdm = "^4.60.0"
 pydantic = "^1.8.1"
-ramodels = "0.3.2"
+ramodels = "^0.3.3"
+jsonschema = "^3.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
