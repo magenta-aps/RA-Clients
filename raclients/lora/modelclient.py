@@ -5,12 +5,14 @@
 # --------------------------------------------------------------------------------------
 from asyncio import run
 from typing import Any
+from typing import cast
 from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Tuple
 from typing import Type
 
+from jsonschema import validate
 from pydantic import AnyHttpUrl
 from ramodels.base import RABase
 from ramodels.lora import Facet
@@ -31,8 +33,35 @@ class ModelClient(ModelClientBase):
         Klasse: "/klassifikation/klasse",
     }
 
-    def __init__(self, base_url: AnyHttpUrl = "http://localhost:8080", *args, **kwargs):
+    def __init__(
+        self,
+        base_url: AnyHttpUrl = "http://localhost:8080",
+        validate=True,
+        *args,
+        **kwargs,
+    ):
+        self.validate: bool = validate
+        self.schema_cache: Dict[LoraBase, Dict[str, Any]] = {}
         super().__init__(base_url, *args, **kwargs)
+
+    async def __fetch_schema(self, session, url: str) -> Dict[str, Any]:
+        """Fetch jsonschema from LoRa."""
+        response = await session.get(url)
+        response.raise_for_status()
+        return cast(Dict[str, Any], await response.json())
+
+    async def __get_schema(
+        self, session, current_type: Type[LoraBase]
+    ) -> Dict[str, Any]:
+        schema = self.schema_cache.get(current_type)
+        if schema:
+            return schema
+
+        generic_url = self._base_url + self.__mox_path_map[current_type]
+        url = generic_url + "/schema"
+        schema = await self.__fetch_schema(session, url)
+        self.schema_cache[current_type] = schema
+        return schema
 
     def _get_healthcheck_tuples(self) -> List[Tuple[str, str]]:
         return [("/version/", "lora_version")]
@@ -58,6 +87,11 @@ class ModelClient(ModelClientBase):
             obj.dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
         )
         generic_url = self._base_url + self.__mox_path_map[current_type]
+
+        if self.validate:
+            schema = await self.__get_schema(session, current_type)
+            validate(instance=jsonified, schema=schema)
+
         if uuid is None:  # post
             async with session.post(
                 generic_url,
@@ -99,6 +133,7 @@ if __name__ == "__main__":
                 name="test_org_name",
                 user_key="test_org_user_key",
             )
+            print(await client.load_lora_objs([organisation]))
             print(await client.load_lora_objs([organisation]))
 
     run(main())
