@@ -10,6 +10,7 @@ from typing import Iterable
 from typing import List
 from typing import Tuple
 from typing import Type
+from functools import partial
 
 from pydantic import AnyHttpUrl
 from ramodels.base import RABase
@@ -19,18 +20,38 @@ from ramodels.lora import Organisation
 
 from raclients.modelclientbase import ModelClientBase
 from raclients.util import uuid_to_str
+from raclients.lora.mox_client import create_mox_helper
 
 # TODO: Change to from ramodels.lora import RABase
 LoraBase = Type[RABase]
 
 
-class ModelClient(ModelClientBase):
-    __mox_path_map = {
-        Organisation: "/organisation/organisation",
-        Facet: "/klassifikation/facet",
-        Klasse: "/klassifikation/klasse",
-    }
+def scrub(obj: Any, remove_keys: List[str]):
+    if isinstance(obj, dict):
+        for key in list(obj.keys()):
+            if key in remove_keys:
+                del obj[key]
+            else:
+                scrub(obj[key], remove_keys)
+    elif isinstance(obj, list):
+        for i in reversed(range(len(obj))):
+            if obj[i] in remove_keys:
+                del obj[i]
+            else:
+                scrub(obj[i], remove_keys)
+    # Neither a dict nor a list, do nothing
+    return obj
 
+
+class InputKlasse(Klasse, extra="ignore"):
+    pass
+
+
+class InputFacet(Facet, extra="ignore"):
+    pass
+
+
+class ModelClient(ModelClientBase):
     def __init__(self, base_url: AnyHttpUrl = "http://localhost:8080", *args, **kwargs):
         super().__init__(base_url, *args, **kwargs)
 
@@ -38,7 +59,30 @@ class ModelClient(ModelClientBase):
         return [("/version/", "lora_version")]
 
     def _get_path_map(self) -> Dict[LoraBase, str]:
-        return self.__mox_path_map
+        return [Organisation, Facet, Klasse]
+
+    async def read_type(self):
+        mox_helper = await create_mox_helper("http://localhost:8080")
+        print(await mox_helper.check_connection())
+        klasser = await mox_helper.search_klassifikation_klasse({"bvn": "%", "list": "True"})
+        validity_scrub = partial(scrub, remove_keys=["from_included", "to_included"])
+
+        for klasse_meta in klasser:
+            uuid = klasse_meta["id"]
+            klasse = klasse_meta["registreringer"][0]
+            print(InputKlasse(
+                uuid=uuid,
+                **validity_scrub(klasse),
+            ))
+
+        facetter = await mox_helper.search_klassifikation_facet({"bvn": "%", "list": "True"})
+        for facet_meta in facetter:
+            uuid = facet_meta["id"]
+            facet = facet_meta["registreringer"][0]
+            print(InputFacet(
+                uuid=uuid,
+                **validity_scrub(facet),
+            ))
 
     async def _post_single_to_backend(
         self, current_type: Type[LoraBase], obj: LoraBase
@@ -49,29 +93,36 @@ class ModelClient(ModelClientBase):
         :param obj:
         :return:
         """
-        session = await self._verify_session()
+        # session = await self._verify_session()
 
         uuid = obj.uuid
         # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
         # for now, uuid is included, and has to be excluded when converted to json
-        jsonified = uuid_to_str(
-            obj.dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
-        )
-        generic_url = self._base_url + self.__mox_path_map[current_type]
-        if uuid is None:  # post
-            async with session.post(
-                generic_url,
-                json=jsonified,
-            ) as response:
-                response.raise_for_status()
-                return await response.json()
-        else:  # put
-            async with session.put(
-                generic_url + f"/{uuid}",
-                json=jsonified,
-            ) as response:
-                response.raise_for_status()
-                return await response.json()
+        dictified = obj.dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
+        mox_helper = await create_mox_helper("http://localhost:8080")
+        print(await mox_helper.check_connection())
+
+        __mox_method_map = {
+            Klasse: {
+                False: mox_helper.create_klassifikation_klasse,
+                True: mox_helper.put_klassifikation_klasse,
+            },
+            Facet: {
+                False: mox_helper.create_klassifikation_facet,
+                True: mox_helper.put_klassifikation_facet,
+            },
+            Organisation: {
+                False: mox_helper.create_organisation_organisation,
+                True: mox_helper.put_organisation_organisation,
+            },
+        }
+
+        create_method = __mox_method_map[current_type][uuid is not None]
+
+        if uuid is None:
+            return await create_method(dictified)
+        else:
+            return await create_method(uuid, dictified)
 
     async def load_lora_objs(
         self, objs: Iterable[LoraBase], disable_progressbar: bool = False
@@ -93,6 +144,8 @@ if __name__ == "__main__":
         client = ModelClient()
         async with client.context():
             from uuid import UUID
+
+            print(await client.read_type())
 
             organisation = Organisation.from_simplified_fields(
                 uuid=UUID("6d9c5332-1f68-9046-0003-d027b0963ba5"),
