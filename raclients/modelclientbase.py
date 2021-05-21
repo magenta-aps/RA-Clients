@@ -151,17 +151,14 @@ class ModelClientBase(ABC):
         if not chunked_tasks or all([not tasks for _, tasks in chunked_tasks]):
             return []
 
-        results = []
-        for key, tasks in chunked_tasks:
-            for f in tqdm(
-                as_completed(tasks),
-                total=len(tasks),
-                unit="chunk",
-                desc=key,
-                disable=disable_progressbar,
-            ):
-                result = await f
-                results.extend(result)
+        with tqdm(total=len(objs), disable=disable_progressbar, unit="objs") as pbar:
+            results = []
+            for key, tasks in chunked_tasks:
+                pbar.set_description("Uploading %s" % key)
+                for f in as_completed(tasks):
+                    result = await f
+                    results.extend(result)
+                    pbar.update(len(result))
         return results
 
     @abstractmethod
