@@ -47,7 +47,9 @@ class ModelClientBase(ABC):
             session_factory = partial(
                 session_factory, headers={"SESSION": str(saml_token)}
             )
-        session_factory = partial(session_factory, connector=TCPConnector(limit=session_limit))
+        session_factory = partial(
+            session_factory, connector=TCPConnector(limit=session_limit)
+        )
         self._session_factory = session_factory
 
         self._session: Optional[ClientSession] = None
