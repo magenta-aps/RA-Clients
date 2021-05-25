@@ -11,6 +11,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Type
 
+from fastapi.encoders import jsonable_encoder
 from pydantic import AnyHttpUrl
 from ramodels.mo import Address
 from ramodels.mo import Employee
@@ -21,7 +22,6 @@ from ramodels.mo import OrganisationUnit
 from ramodels.mo._shared import MOBase
 
 from raclients.modelclientbase import ModelClientBase
-from raclients.util import uuid_to_str
 
 
 class ModelClient(ModelClientBase):
@@ -36,7 +36,9 @@ class ModelClient(ModelClientBase):
 
     def __init__(
         self,
-        base_url: AnyHttpUrl = AnyHttpUrl("http://localhost:5000"),
+        base_url: AnyHttpUrl = AnyHttpUrl(
+            "http://localhost:5000", scheme="http", host="localhost"
+        ),
         *args: Any,
         **kwargs: Optional[Any]
     ):
@@ -55,7 +57,7 @@ class ModelClient(ModelClientBase):
 
         async with session.post(
             self._base_url + self.__mo_path_map[current_type],
-            json=uuid_to_str(obj.dict(by_alias=True)),
+            json=jsonable_encoder(obj),
         ) as response:
             response.raise_for_status()
             return await response.json()

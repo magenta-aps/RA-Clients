@@ -13,6 +13,7 @@ from typing import Tuple
 from typing import Type
 
 from aiohttp import ClientSession
+from fastapi.encoders import jsonable_encoder
 from jsonschema import validate
 from pydantic import AnyHttpUrl
 from ramodels.lora import Facet
@@ -21,7 +22,6 @@ from ramodels.lora import Organisation
 from ramodels.lora._shared import LoraBase
 
 from raclients.modelclientbase import ModelClientBase
-from raclients.util import uuid_to_str
 
 
 class ModelClient(ModelClientBase):
@@ -33,7 +33,9 @@ class ModelClient(ModelClientBase):
 
     def __init__(
         self,
-        base_url: AnyHttpUrl = AnyHttpUrl("http://localhost:8080"),
+        base_url: AnyHttpUrl = AnyHttpUrl(
+            "http://localhost:8080", scheme="http", host="localhost"
+        ),
         validate: bool = True,
         *args: Any,
         **kwargs: Optional[Any],
@@ -81,19 +83,17 @@ class ModelClient(ModelClientBase):
         uuid = obj.uuid
         # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
         # for now, uuid is included, and has to be excluded when converted to json
-        jsonified = uuid_to_str(
-            obj.dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
-        )
+        json_settings = dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
+        jsonified = obj.dict(**json_settings)
         generic_url = self._base_url + self.__mox_path_map[current_type]
 
         if self.validate:
             schema = await self._get_schema(session, current_type)
             validate(instance=jsonified, schema=schema)
-
         assert uuid is not None
         async with session.put(
             generic_url + f"/{uuid}",
-            json=jsonified,
+            json=jsonable_encoder(obj=obj, **json_settings),  # type: ignore
         ) as response:
             response.raise_for_status()
             return await response.json()
