@@ -151,7 +151,7 @@ class ModelClientBase(ABC):
             (type_name, list(map(self._submit_chunk, chunks)))
             for type_name, chunks in chunked_groups
         ]
-        if not chunked_tasks or all([not tasks for _, tasks in chunked_tasks]):
+        if not any([tasks for _, tasks in chunked_tasks]):
             return []
 
         with tqdm(total=len(objs), disable=disable_progressbar, unit="objs") as pbar:
