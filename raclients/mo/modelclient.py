@@ -12,13 +12,13 @@ from typing import Tuple
 from typing import Type
 
 from pydantic import AnyHttpUrl
-from ramodels.mo._shared import MOBase
 from ramodels.mo import Address
 from ramodels.mo import Employee
 from ramodels.mo import Engagement
 from ramodels.mo import EngagementAssociation
 from ramodels.mo import Manager
 from ramodels.mo import OrganisationUnit
+from ramodels.mo._shared import MOBase
 
 from raclients.modelclientbase import ModelClientBase
 from raclients.util import uuid_to_str
@@ -34,7 +34,12 @@ class ModelClient(ModelClientBase):
         Address: "/service/details/create",
     }
 
-    def __init__(self, base_url: AnyHttpUrl = "http://localhost:5000", *args, **kwargs):
+    def __init__(
+        self,
+        base_url: AnyHttpUrl = AnyHttpUrl("http://localhost:5000"),
+        *args,
+        **kwargs
+    ):
         super().__init__(base_url, *args, **kwargs)
 
     def _get_healthcheck_tuples(self) -> List[Tuple[str, str]]:
@@ -67,19 +72,3 @@ class ModelClient(ModelClientBase):
         return await self._submit_payloads(
             objs, disable_progressbar=disable_progressbar
         )
-
-
-if __name__ == "__main__":
-
-    async def main():
-        client = ModelClient()
-        async with client.context():
-            from uuid import UUID
-
-            employee = Employee(
-                uuid=UUID("456362c4-0ee4-4e5e-a72c-751239745e64"),
-                name="Brian Orskov",
-            )
-            print(await client.load_mo_objs([employee]))
-
-    run(main())
