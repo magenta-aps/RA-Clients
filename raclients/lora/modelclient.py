@@ -36,7 +36,7 @@ class ModelClient(ModelClientBase):
     def __init__(
         self,
         base_url: AnyHttpUrl = "http://localhost:8080",
-        validate=True,
+        validate: bool = True,
         *args,
         **kwargs,
     ):
