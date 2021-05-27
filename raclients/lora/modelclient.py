@@ -12,6 +12,7 @@ from typing import List
 from typing import Tuple
 from typing import Type
 
+from aiohttp import ClientSession
 from jsonschema import validate
 from pydantic import AnyHttpUrl
 from ramodels.base import RABase
@@ -44,14 +45,14 @@ class ModelClient(ModelClientBase):
         self.schema_cache: Dict[LoraBase, Dict[str, Any]] = {}
         super().__init__(base_url, *args, **kwargs)
 
-    async def __fetch_schema(self, session, url: str) -> Dict[str, Any]:
+    async def __fetch_schema(self, session: ClientSession, url: str) -> Dict[str, Any]:
         """Fetch jsonschema from LoRa."""
         response = await session.get(url)
         response.raise_for_status()
         return cast(Dict[str, Any], await response.json())
 
     async def __get_schema(
-        self, session, current_type: Type[LoraBase]
+        self, session: ClientSession, current_type: Type[LoraBase]
     ) -> Dict[str, Any]:
         schema = self.schema_cache.get(current_type)
         if schema:
@@ -78,7 +79,7 @@ class ModelClient(ModelClientBase):
         :param obj:
         :return:
         """
-        session = await self._verify_session()
+        session: ClientSession = await self._verify_session()
 
         uuid = obj.uuid
         # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
