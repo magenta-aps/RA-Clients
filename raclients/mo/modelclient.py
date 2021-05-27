@@ -12,7 +12,7 @@ from typing import Tuple
 from typing import Type
 
 from pydantic import AnyHttpUrl
-from ramodels.base import RABase
+from ramodels.mo._shared import MOBase
 from ramodels.mo import Address
 from ramodels.mo import Employee
 from ramodels.mo import Engagement
@@ -22,9 +22,6 @@ from ramodels.mo import OrganisationUnit
 
 from raclients.modelclientbase import ModelClientBase
 from raclients.util import uuid_to_str
-
-# TODO: Change to from ramodels.mo import MOBase
-MOBase = Type[RABase]
 
 
 class ModelClient(ModelClientBase):

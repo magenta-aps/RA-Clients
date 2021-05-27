@@ -15,16 +15,13 @@ from typing import Type
 from aiohttp import ClientSession
 from jsonschema import validate
 from pydantic import AnyHttpUrl
-from ramodels.base import RABase
+from ramodels.lora._shared import LoraBase
 from ramodels.lora import Facet
 from ramodels.lora import Klasse
 from ramodels.lora import Organisation
 
 from raclients.modelclientbase import ModelClientBase
 from raclients.util import uuid_to_str
-
-# TODO: Change to from ramodels.lora import RABase
-LoraBase = Type[RABase]
 
 
 class ModelClient(ModelClientBase):
