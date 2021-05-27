@@ -15,10 +15,10 @@ from typing import Type
 from aiohttp import ClientSession
 from jsonschema import validate
 from pydantic import AnyHttpUrl
-from ramodels.lora._shared import LoraBase
 from ramodels.lora import Facet
 from ramodels.lora import Klasse
 from ramodels.lora import Organisation
+from ramodels.lora._shared import LoraBase
 
 from raclients.modelclientbase import ModelClientBase
 from raclients.util import uuid_to_str
@@ -33,7 +33,7 @@ class ModelClient(ModelClientBase):
 
     def __init__(
         self,
-        base_url: AnyHttpUrl = "http://localhost:8080",
+        base_url: AnyHttpUrl = AnyHttpUrl("http://localhost:8080"),
         validate: bool = True,
         *args,
         **kwargs,
@@ -117,21 +117,3 @@ class ModelClient(ModelClientBase):
         return await self._submit_payloads(
             objs, disable_progressbar=disable_progressbar
         )
-
-
-if __name__ == "__main__":
-
-    async def main():
-        client = ModelClient()
-        async with client.context():
-            from uuid import UUID
-
-            organisation = Organisation.from_simplified_fields(
-                uuid=UUID("6d9c5332-1f68-9046-0003-d027b0963ba5"),
-                name="test_org_name",
-                user_key="test_org_user_key",
-            )
-            print(await client.load_lora_objs([organisation]))
-            print(await client.load_lora_objs([organisation]))
-
-    run(main())
