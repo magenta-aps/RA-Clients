@@ -139,7 +139,7 @@ class ModelClientBase(ABC):
         return await self._post_to_backend(current_type, data)
 
     async def _submit_payloads(
-        self, objs: Iterable[RABase], disable_progressbar=False
+        self, objs: Iterable[RABase], disable_progressbar: bool = False
     ) -> List[Any]:
         objs = list(objs)
         groups = groupby(objs, lambda x: type(x).__name__)
