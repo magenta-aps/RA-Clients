@@ -42,13 +42,13 @@ class ModelClient(ModelClientBase):
         self.schema_cache: Dict[LoraBase, Dict[str, Any]] = {}
         super().__init__(base_url, *args, **kwargs)
 
-    async def __fetch_schema(self, session: ClientSession, url: str) -> Dict[str, Any]:
+    async def _fetch_schema(self, session: ClientSession, url: str) -> Dict[str, Any]:
         """Fetch jsonschema from LoRa."""
         response = await session.get(url)
         response.raise_for_status()
         return cast(Dict[str, Any], await response.json())
 
-    async def __get_schema(
+    async def _get_schema(
         self, session: ClientSession, current_type: Type[LoraBase]
     ) -> Dict[str, Any]:
         schema = self.schema_cache.get(current_type)
@@ -57,7 +57,7 @@ class ModelClient(ModelClientBase):
 
         generic_url = self._base_url + self.__mox_path_map[current_type]
         url = generic_url + "/schema"
-        schema = await self.__fetch_schema(session, url)
+        schema = await self._fetch_schema(session, url)
         self.schema_cache[current_type] = schema
         return schema
 
@@ -87,7 +87,7 @@ class ModelClient(ModelClientBase):
         generic_url = self._base_url + self.__mox_path_map[current_type]
 
         if self.validate:
-            schema = await self.__get_schema(session, current_type)
+            schema = await self._get_schema(session, current_type)
             validate(instance=jsonified, schema=schema)
 
         if uuid is None:  # post
