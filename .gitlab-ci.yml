@@ -22,11 +22,11 @@ stages:
 # ---------------------------------------------------------------------------
 .install-deps-template: &install-deps
   before_script:
-    - pip install poetry pre-commit mypy
+    - pip install poetry
     - poetry --version
     - poetry config virtualenvs.in-project true
     - poetry install -vv
-    - pre-commit install
+    - poetry run pre-commit install
 
 .lint-template: &lint
   <<: *install-deps
@@ -53,7 +53,7 @@ stages:
 Lint Project:
   <<: *lint
   script:
-    - pre-commit run --all-files
+    - poetry run pre-commit run --all-files
 
 # ---------------------------------------------------------------------------
 # Test
