@@ -90,20 +90,13 @@ class ModelClient(ModelClientBase):
             schema = await self._get_schema(session, current_type)
             validate(instance=jsonified, schema=schema)
 
-        if uuid is None:  # post
-            async with session.post(
-                generic_url,
-                json=jsonified,
-            ) as response:
-                response.raise_for_status()
-                return await response.json()
-        else:  # put
-            async with session.put(
-                generic_url + f"/{uuid}",
-                json=jsonified,
-            ) as response:
-                response.raise_for_status()
-                return await response.json()
+        assert uuid is not None
+        async with session.put(
+            generic_url + f"/{uuid}",
+            json=jsonified,
+        ) as response:
+            response.raise_for_status()
+            return await response.json()
 
     async def load_lora_objs(
         self, objs: Iterable[LoraBase], disable_progressbar: bool = False
