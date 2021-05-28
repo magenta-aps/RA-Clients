@@ -13,6 +13,8 @@ from functools import partial
 from itertools import groupby
 from itertools import starmap
 from typing import Any
+from typing import AsyncGenerator
+from typing import Callable
 from typing import cast
 from typing import Coroutine
 from typing import Dict
@@ -43,7 +45,7 @@ class ModelClientBase(ABC):
         chunk_size: int = 100,
         session_limit: int = 1,
         saml_token: Optional[UUID] = None,
-        session_factory: ClientSession = ClientSession,
+        session_factory: Callable[[], ClientSession] = ClientSession,
     ):
         # connection logic
         self._base_url = base_url
@@ -55,18 +57,17 @@ class ModelClientBase(ABC):
         session_factory = partial(
             session_factory, connector=TCPConnector(limit=session_limit)
         )
-        self._session_factory = session_factory
+        self._session_factory: Callable[[], ClientSession] = session_factory
 
         self._session: Optional[ClientSession] = None
 
     @asynccontextmanager
-    async def context(self):
+    async def context(self) -> AsyncGenerator[ClientSession, None]:
         try:
             async with self._session_factory() as session:
                 self._session = session
                 await self.__check_if_server_online()
-
-                yield
+                yield self._session
         finally:
             self._session = None
 
@@ -86,7 +87,7 @@ class ModelClientBase(ABC):
         """
         session = await self._verify_session()
 
-        async def check_endpoint(url, response):
+        async def check_endpoint(url: str, response: str) -> None:
             for _ in range(attempts):
                 try:
                     resp = await session.get(url)

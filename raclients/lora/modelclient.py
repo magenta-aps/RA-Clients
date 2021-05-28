@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # --------------------------------------------------------------------------------------
-from asyncio import run
 from typing import Any
 from typing import cast
 from typing import Dict
 from typing import Iterable
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import Type
 
@@ -35,12 +35,12 @@ class ModelClient(ModelClientBase):
         self,
         base_url: AnyHttpUrl = AnyHttpUrl("http://localhost:8080"),
         validate: bool = True,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Optional[Any],
     ):
         self.validate: bool = validate
         self.schema_cache: Dict[LoraBase, Dict[str, Any]] = {}
-        super().__init__(base_url, *args, **kwargs)
+        super().__init__(base_url, *args, **kwargs)  # type: ignore
 
     async def _fetch_schema(self, session: ClientSession, url: str) -> Dict[str, Any]:
         """Fetch jsonschema from LoRa."""

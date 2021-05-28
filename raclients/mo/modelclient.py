@@ -3,11 +3,11 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # --------------------------------------------------------------------------------------
-from asyncio import run
 from typing import Any
 from typing import Dict
 from typing import Iterable
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import Type
 
@@ -37,10 +37,10 @@ class ModelClient(ModelClientBase):
     def __init__(
         self,
         base_url: AnyHttpUrl = AnyHttpUrl("http://localhost:5000"),
-        *args,
-        **kwargs
+        *args: Any,
+        **kwargs: Optional[Any]
     ):
-        super().__init__(base_url, *args, **kwargs)
+        super().__init__(base_url, *args, **kwargs)  # type: ignore
 
     def _get_healthcheck_tuples(self) -> List[Tuple[str, str]]:
         return [("/version/", "mo_version")]
