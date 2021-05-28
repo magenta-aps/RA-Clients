@@ -23,12 +23,17 @@ from typing import Tuple
 from typing import Type
 from uuid import UUID
 
+from aiohttp import ClientResponseError
 from aiohttp import ClientSession
 from aiohttp import TCPConnector
 from more_itertools import chunked
 from pydantic import AnyHttpUrl
 from ramodels.base import RABase
 from tqdm import tqdm
+
+
+class ModelClientException(Exception):
+    pass
 
 
 class ModelClientBase(ABC):
@@ -70,11 +75,13 @@ class ModelClientBase(ABC):
             raise Exception("Need to initialize client session!")
         return self._session
 
-    async def __check_if_server_online(self, attempts=100, delay=1) -> None:
+    async def __check_if_server_online(
+        self, attempts: int = 100, delay: float = 1.0
+    ) -> None:
         """Check if backend is online.
 
         :param attempts: Number of repeats
-        :param delay: Number of sleeps in-between
+        :param delay: Sleep-time in-between repeats
         :return:
         """
         session = await self._verify_session()
@@ -83,14 +90,18 @@ class ModelClientBase(ABC):
             for _ in range(attempts):
                 try:
                     resp = await session.get(url)
+                    # Btw, raise_for_status can be set directly in
+                    # aiohttp.ClientSession, so we don't have to do this all the time
                     resp.raise_for_status()
-                    if response in await resp.json():
-                        return
-                    raise Exception("Invalid response")
-                except Exception as exp:
-                    print(exp)
+                    if response not in await resp.json():
+                        raise ModelClientException("Invalid response")
+                except ClientResponseError as client_err:
+                    print(client_err)
                     await sleep(delay)
-            raise Exception("Unable to connect")
+                else:
+                    break
+            else:
+                raise ModelClientException("Unable to connect")
 
         healthcheck_tuples = self._get_healthcheck_tuples()
         healthcheck_tuples = [
