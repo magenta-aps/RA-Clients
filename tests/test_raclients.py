@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: MPL-2.0
 # --------------------------------------------------------------------------------------
 from datetime import datetime
-from importlib.metadata import version  # type: ignore
 from uuid import uuid4
 
 import pytest
@@ -16,7 +15,7 @@ from raclients.mo import ModelClient
 
 
 def test_version():
-    assert __version__ == version("raclients")
+    assert __version__ == "0.1.8"
 
 
 @pytest.mark.asyncio
