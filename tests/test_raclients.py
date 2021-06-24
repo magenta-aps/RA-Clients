@@ -25,7 +25,7 @@ async def test_request(aioresponses):
         "http://example.com/version/", status=200, payload={"mo_version": "1"}
     )
     aioresponses.post(
-        "http://example.com/service/e/create",
+        "http://example.com/service/e/create?force=0",
         status=200,
         payload=ok_response,
     )

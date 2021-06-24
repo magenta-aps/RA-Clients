@@ -39,10 +39,12 @@ class ModelClient(ModelClientBase):
         base_url: AnyHttpUrl = AnyHttpUrl(
             "http://localhost:5000", scheme="http", host="localhost"
         ),
+        force: bool = False,
         *args: Any,
-        **kwargs: Optional[Any]
+        **kwargs: Optional[Any],
     ):
         super().__init__(base_url, *args, **kwargs)  # type: ignore
+        self.force = int(force)
 
     def _get_healthcheck_tuples(self) -> List[Tuple[str, str]]:
         return [("/version/", "mo_version")]
@@ -54,11 +56,11 @@ class ModelClient(ModelClientBase):
         self, current_type: Type[MOBase], obj: MOBase
     ) -> Any:
         session = await self._verify_session()
+        post_url = (
+            f"{self._base_url}{self.__mo_path_map[current_type]}?force={self.force}"
+        )
 
-        async with session.post(
-            self._base_url + self.__mo_path_map[current_type],
-            json=jsonable_encoder(obj),
-        ) as response:
+        async with session.post(post_url, json=jsonable_encoder(obj)) as response:
             response.raise_for_status()
             return await response.json()
 
