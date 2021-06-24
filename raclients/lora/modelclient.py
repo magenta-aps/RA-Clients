@@ -83,29 +83,32 @@ class ModelClient(ModelClientBase):
         uuid = obj.uuid
         # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
         # for now, uuid is included, and has to be excluded when converted to json
-        json_settings = dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
-        jsonified = obj.dict(**json_settings)
+        # json_settings = dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
+        jsonified = jsonable_encoder(
+            obj=obj, by_alias=True, exclude={"uuid"}, exclude_none=True
+        )
         generic_url = self._base_url + self.__mox_path_map[current_type]
 
         if self.validate:
             schema = await self._get_schema(session, current_type)
             validate(instance=jsonified, schema=schema)
         assert uuid is not None
-        async with session.put(
-            generic_url + f"/{uuid}",
-            json=jsonable_encoder(obj=obj, **json_settings),  # type: ignore
-        ) as response:
+        async with session.put(generic_url + f"/{uuid}", json=jsonified) as response:
             response.raise_for_status()
             return await response.json()
 
     async def load_lora_objs(
         self, objs: Iterable[LoraBase], disable_progressbar: bool = False
     ) -> List[Any]:
-        """
-        lazy init client session to ensure created within async context
-        :param objs:
-        :param disable_progressbar:
-        :return:
+        """Lazy init client session to ensure created within async context
+
+        Args:
+            objs (Iterable[LoraBase]): LoRa objects to load
+            disable_progressbar (bool, optional): Whether to disable the progress bar.
+                Defaults to False.
+
+        Returns:
+            List[Any]: List of JSON responses.
         """
         return await self._submit_payloads(
             objs, disable_progressbar=disable_progressbar
