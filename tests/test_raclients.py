@@ -15,7 +15,7 @@ from raclients.mo import ModelClient
 
 
 def test_version():
-    assert __version__ == "0.1.8"
+    assert __version__ == "0.2.0"
 
 
 @pytest.mark.asyncio
