@@ -83,7 +83,6 @@ class ModelClient(ModelClientBase):
         uuid = obj.uuid
         # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
         # for now, uuid is included, and has to be excluded when converted to json
-        # json_settings = dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
         jsonified = jsonable_encoder(
             obj=obj, by_alias=True, exclude={"uuid"}, exclude_none=True
         )
