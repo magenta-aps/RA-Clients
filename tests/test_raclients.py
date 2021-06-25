@@ -12,6 +12,7 @@ from ramodels.mo import Employee
 
 from raclients import __version__
 from raclients.mo import ModelClient
+from raclients.modelclientbase import common_session_factory
 
 
 def test_version():
@@ -47,3 +48,7 @@ async def test_request(aioresponses):
         )
 
         assert [ok_response] == resp
+
+
+def test_common_session():
+    assert common_session_factory()

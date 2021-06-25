@@ -27,6 +27,7 @@ from uuid import UUID
 
 from aiohttp import ClientResponseError
 from aiohttp import ClientSession
+from aiohttp import ClientTimeout
 from aiohttp import TCPConnector
 from more_itertools import chunked
 from pydantic import AnyHttpUrl
@@ -41,20 +42,37 @@ class ModelClientException(Exception):
 def common_session_factory(
     session_limit: int = 1,
     saml_token: Optional[UUID] = None,
+    timeout: Optional[float] = None,
 ) -> Callable[[], Coroutine[Any, Any, ClientSession]]:
-    """
-    Convenience for generating a commonly used ClientSession factory
+    """Convenience for generating a commonly used ClientSession factory
 
-    :param session_limit: Number of concurrent TCP connections
-    :param saml_token: If specified, send as a header with all requests
-    :return: A configured ClientSession factory
+    Args:
+        session_limit (int, optional): Number of concurrent TCP connections.
+            Defaults to 1.
+        saml_token (Optional[UUID]): If specified, send as a header with
+            all requests. Defaults to None.
+        timeout (Optional[float]): Timeout in seconds. Defaults to None,
+            in which case the aiohttp default of five minutes is used.
+
+    Returns:
+        Callable[[], Coroutine[Any, Any, ClientSession]]: [description]
     """
+
+    # """
+    # Convenience for generating a commonly used ClientSession factory
+
+    # :param session_limit: Number of concurrent TCP connections
+    # :param saml_token: If specified, send as a header with all requests
+    # :return: A configured ClientSession factory
+    # """
 
     async def session_factory() -> ClientSession:
         # TCPConnector needs async-context
         config: Dict[str, Any] = {"connector": TCPConnector(limit=session_limit)}
         if saml_token:
             config["headers"] = {"SESSION": str(saml_token)}
+        if timeout:
+            config["timeout"] = ClientTimeout(timeout)
 
         return ClientSession(**config)
 
