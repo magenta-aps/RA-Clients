@@ -12,6 +12,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Type
 
+from aiohttp import ClientResponseError
 from aiohttp import ClientSession
 from fastapi.encoders import jsonable_encoder
 from jsonschema import validate
@@ -93,8 +94,14 @@ class ModelClient(ModelClientBase):
             validate(instance=jsonified, schema=schema)
         assert uuid is not None
         async with session.put(generic_url + f"/{uuid}", json=jsonified) as response:
-            response.raise_for_status()
-            return await response.json()
+            resp_json = await response.json()
+            try:
+                response.raise_for_status()
+            except ClientResponseError as client_err:
+                if "description" in resp_json:
+                    client_err.message = resp_json["description"]
+                raise client_err
+            return resp_json
 
     async def load_lora_objs(
         self, objs: Iterable[LoraBase], disable_progressbar: bool = False

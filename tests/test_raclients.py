@@ -7,6 +7,7 @@ from datetime import datetime
 from uuid import uuid4
 
 import pytest
+from aiohttp import ClientResponseError
 from pydantic import AnyHttpUrl
 from ramodels.mo import Employee
 
@@ -16,12 +17,13 @@ from raclients.modelclientbase import common_session_factory
 
 
 def test_version():
-    assert __version__ == "0.3.3"
+    assert __version__ == "0.3.4"
 
 
 @pytest.mark.asyncio
 async def test_request(aioresponses):
     ok_response = {"any": "thing"}
+
     aioresponses.get(
         "http://example.com/version/", status=200, payload={"mo_version": "1"}
     )
@@ -49,6 +51,60 @@ async def test_request(aioresponses):
         )
 
         assert [ok_response] == resp
+
+
+@pytest.mark.asyncio
+async def test_fail_request(aioresponses):
+    aioresponses.get(
+        "http://example.com/version/", status=200, payload={"mo_version": "1"}
+    )
+    err_response = {"description": "error"}
+    aioresponses.post(
+        "http://example.com/service/e/create?force=0",
+        status=404,
+        payload=err_response,
+    )
+    client = ModelClient(
+        AnyHttpUrl("http://example.com", scheme="http", host="example.com")
+    )
+    async with client.context():
+        with pytest.raises(
+            ClientResponseError, match=f"message='{err_response['description']}'"
+        ):
+            await client.load_mo_objs(
+                objs=[
+                    Employee(
+                        uuid=uuid4(),
+                        givenname="given name",
+                        surname="surname",
+                        cpr_no=None,
+                        seniority=datetime(2000, 1, 1),
+                    )
+                ],
+                disable_progressbar=True,
+            )
+    aioresponses.get(
+        "http://example.com/version/", status=200, payload={"mo_version": "1"}
+    )
+    aioresponses.post(
+        "http://example.com/service/e/create?force=0",
+        status=404,
+        payload={"oh": "no"},
+    )
+    async with client.context():
+        with pytest.raises(ClientResponseError, match="message='Not Found'"):
+            await client.load_mo_objs(
+                objs=[
+                    Employee(
+                        uuid=uuid4(),
+                        givenname="given name",
+                        surname="surname",
+                        cpr_no=None,
+                        seniority=datetime(2000, 1, 1),
+                    )
+                ],
+                disable_progressbar=True,
+            )
 
 
 def test_common_session():
