@@ -16,7 +16,7 @@ from raclients.modelclientbase import common_session_factory
 
 
 def test_version():
-    assert __version__ == "0.3.1"
+    assert __version__ == "0.3.2"
 
 
 @pytest.mark.asyncio
@@ -39,7 +39,8 @@ async def test_request(aioresponses):
             objs=[
                 Employee(
                     uuid=uuid4(),
-                    name="name",
+                    givenname="given name",
+                    surname="surname",
                     cpr_no=None,
                     seniority=datetime(2000, 1, 1),
                 )
