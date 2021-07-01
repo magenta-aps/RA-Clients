@@ -11,6 +11,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Type
 
+from aiohttp import ClientResponseError
 from fastapi.encoders import jsonable_encoder
 from pydantic import AnyHttpUrl
 from ramodels.mo import Employee
@@ -61,8 +62,14 @@ class ModelClient(ModelClientBase):
         )
 
         async with session.post(post_url, json=jsonable_encoder(obj)) as response:
-            response.raise_for_status()
-            return await response.json()
+            resp = await response.json()
+            try:
+                response.raise_for_status()
+            except ClientResponseError as client_err:
+                if "description" in resp:
+                    client_err.message = resp["description"]
+                raise client_err
+            return resp
 
     async def load_mo_objs(
         self, objs: Iterable[MOBase], disable_progressbar: bool = False
