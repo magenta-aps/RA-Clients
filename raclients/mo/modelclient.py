@@ -13,13 +13,13 @@ from typing import Type
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import AnyHttpUrl
-from ramodels.mo import Address
 from ramodels.mo import Employee
-from ramodels.mo import Engagement
-from ramodels.mo import EngagementAssociation
-from ramodels.mo import Manager
 from ramodels.mo import OrganisationUnit
 from ramodels.mo._shared import MOBase
+from ramodels.mo.details import Address
+from ramodels.mo.details import Engagement
+from ramodels.mo.details import EngagementAssociation
+from ramodels.mo.details import Manager
 
 from raclients.modelclientbase import ModelClientBase
 
