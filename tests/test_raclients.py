@@ -17,7 +17,7 @@ from raclients.modelclientbase import common_session_factory
 
 
 def test_version():
-    assert __version__ == "0.4.0"
+    assert __version__ == "0.4.1"
 
 
 @pytest.mark.asyncio
