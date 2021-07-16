@@ -54,6 +54,7 @@ async def test_request(aioresponses):
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail
 async def test_fail_request(aioresponses):
     aioresponses.get(
         "http://example.com/version/", status=200, payload={"mo_version": "1"}
