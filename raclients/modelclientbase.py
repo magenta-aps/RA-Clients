@@ -23,7 +23,6 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Type
-from uuid import UUID
 
 from aiohttp import ClientResponseError
 from aiohttp import ClientSession
@@ -31,6 +30,7 @@ from aiohttp import ClientTimeout
 from aiohttp import TCPConnector
 from more_itertools import chunked
 from pydantic import AnyHttpUrl
+from ra_utils.headers import TokenSettings
 from ramodels.base import RABase
 from tqdm import tqdm
 
@@ -41,7 +41,7 @@ class ModelClientException(Exception):
 
 def common_session_factory(
     session_limit: int = 1,
-    saml_token: Optional[UUID] = None,
+    token_settings: Optional[TokenSettings] = None,
     timeout: Optional[float] = None,
 ) -> Callable[[], Coroutine[Any, Any, ClientSession]]:
     """Convenience for generating a commonly used ClientSession factory
@@ -49,28 +49,20 @@ def common_session_factory(
     Args:
         session_limit (int, optional): Number of concurrent TCP connections.
             Defaults to 1.
-        saml_token (Optional[UUID]): If specified, send as a header with
-            all requests. Defaults to None.
+        token_settings (Optional[TokenSettings]): If specified,
+            get session headers from TokenSettings. Defaults to None.
         timeout (Optional[float]): Timeout in seconds. Defaults to None,
             in which case the aiohttp default of five minutes is used.
 
     Returns:
-        Callable[[], Coroutine[Any, Any, ClientSession]]: [description]
+        Callable[[], Coroutine[Any, Any, ClientSession]]: Session factory
     """
-
-    # """
-    # Convenience for generating a commonly used ClientSession factory
-
-    # :param session_limit: Number of concurrent TCP connections
-    # :param saml_token: If specified, send as a header with all requests
-    # :return: A configured ClientSession factory
-    # """
 
     async def session_factory() -> ClientSession:
         # TCPConnector needs async-context
         config: Dict[str, Any] = {"connector": TCPConnector(limit=session_limit)}
-        if saml_token:
-            config["headers"] = {"SESSION": str(saml_token)}
+        if token_settings:
+            config["headers"] = token_settings.get_headers()
         if timeout:
             config["timeout"] = ClientTimeout(timeout)
 
@@ -126,8 +118,6 @@ class ModelClientBase(ABC):
             for _ in range(attempts):
                 try:
                     resp = await session.get(url)
-                    # Btw, raise_for_status can be set directly in
-                    # aiohttp.ClientSession, so we don't have to do this all the time
                     resp.raise_for_status()
                     if response not in await resp.json():
                         raise ModelClientException("Invalid response")
