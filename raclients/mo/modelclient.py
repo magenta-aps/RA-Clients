@@ -21,6 +21,8 @@ from ramodels.mo.details import Address
 from ramodels.mo.details import Engagement
 from ramodels.mo.details import EngagementAssociation
 from ramodels.mo.details import Manager
+from tenacity import retry
+from tenacity.wait import wait_exponential
 
 from raclients.modelclientbase import ModelClientBase
 
@@ -53,6 +55,7 @@ class ModelClient(ModelClientBase):
     def _get_path_map(self) -> Dict[MOBase, str]:
         return self.__mo_path_map
 
+    @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
     async def _post_single_to_backend(
         self, current_type: Type[MOBase], obj: MOBase
     ) -> Any:
