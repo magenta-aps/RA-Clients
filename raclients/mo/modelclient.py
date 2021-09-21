@@ -15,6 +15,7 @@ from aiohttp import ClientResponseError
 from fastapi.encoders import jsonable_encoder
 from pydantic import AnyHttpUrl
 from ramodels.mo import Employee
+from ramodels.mo import FacetClass
 from ramodels.mo import OrganisationUnit
 from ramodels.mo._shared import MOBase
 from ramodels.mo.details import Address
@@ -36,6 +37,7 @@ class ModelClient(ModelClientBase):
         EngagementAssociation: "/service/details/create",
         Manager: "/service/details/create",
         Address: "/service/details/create",
+        FacetClass: "/service/f/{facet_uuid}/",
     }
 
     def __init__(
@@ -65,9 +67,11 @@ class ModelClient(ModelClientBase):
         self, current_type: Type[MOBase], obj: MOBase
     ) -> Any:
         session = await self._verify_session()
-        post_url = (
-            f"{self._base_url}{self.__mo_path_map[current_type]}?force={self.force}"
-        )
+        # Note that we additionally format the object's fields onto the path mapping to
+        # support schemes such as /service/f/{facet_uuid}/, where facet_uuid is
+        # retrieved from obj.facet_uuid.
+        path = self.__mo_path_map[current_type].format_map(obj.dict())
+        post_url = f"{self._base_url}{path}?force={self.force}"
 
         async with session.post(post_url, json=jsonable_encoder(obj)) as response:
             resp = await response.json()
