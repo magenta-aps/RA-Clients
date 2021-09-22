@@ -9,7 +9,6 @@ from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Type
 
 from aiohttp import ClientResponseError
 from fastapi.encoders import jsonable_encoder
@@ -30,7 +29,7 @@ from raclients.modelclientbase import ModelClientBase
 
 
 class ModelClient(ModelClientBase):
-    __mo_path_map = {
+    __mo_path_map: Dict[MOBase, str] = {
         OrganisationUnit: "/service/ou/create",
         Employee: "/service/e/create",
         Engagement: "/service/details/create",
@@ -63,9 +62,7 @@ class ModelClient(ModelClientBase):
         wait=wait_exponential(multiplier=2, min=1),
         stop=stop_after_attempt(7),
     )
-    async def _post_single_to_backend(
-        self, current_type: Type[MOBase], obj: MOBase
-    ) -> Any:
+    async def _post_single_to_backend(self, current_type: MOBase, obj: MOBase) -> Any:
         session = await self._verify_session()
         # Note that we additionally format the object's fields onto the path mapping to
         # support schemes such as /service/f/{facet_uuid}/, where facet_uuid is
