@@ -10,6 +10,7 @@ import pytest
 from aiohttp import ClientResponseError
 from pydantic import AnyHttpUrl
 from ramodels.mo import Employee
+from ramodels.mo import FacetClass
 
 from raclients import __version__
 from raclients.mo import ModelClient
@@ -17,7 +18,7 @@ from raclients.modelclientbase import common_session_factory
 
 
 def test_version():
-    assert __version__ == "0.4.3"
+    assert __version__ == "0.4.4"
 
 
 @pytest.mark.asyncio
@@ -45,6 +46,39 @@ async def test_request(aioresponses):
                     surname="surname",
                     cpr_no=None,
                     seniority=datetime(2000, 1, 1),
+                )
+            ],
+            disable_progressbar=True,
+        )
+
+        assert [ok_response] == resp
+
+
+@pytest.mark.asyncio
+async def test_uuid_request(aioresponses):
+    ok_response = {"good": "job"}
+
+    aioresponses.get(
+        "http://example.com/version/", status=200, payload={"mo_version": "1"}
+    )
+    aioresponses.post(
+        "http://example.com/service/f/00000000-0000-0000-0000-000000000000/?force=0",
+        status=200,
+        payload=ok_response,
+    )
+
+    client = ModelClient(
+        AnyHttpUrl("http://example.com", scheme="http", host="example.com")
+    )
+    async with client.context():
+        resp = await client.load_mo_objs(
+            objs=[
+                FacetClass(
+                    facet_uuid="00000000-0000-0000-0000-000000000000",
+                    name="My Awesome Class",
+                    user_key="MyClass",
+                    scope="TEXT",
+                    org_uuid="11111111-1111-1111-1111-111111111111",
                 )
             ],
             disable_progressbar=True,
