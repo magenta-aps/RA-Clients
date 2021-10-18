@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "raclients"
-version = "0.4.4"
+version = "0.4.5"
 description = "Clients for OS2mo/LoRa"
 authors = ["Magenta <info@magenta.dk>"]
 license = "MPL-2.0"
@@ -16,7 +16,7 @@ more-itertools = "^8.7.0"
 tqdm = "^4.60.0"
 pydantic = "^1.8.2"
 jsonschema = "^3.2.0"
-fastapi = "^0.65.1"
+fastapi = "^0.70.0"
 ramodels = "^3.0.0"
 ra-utils = {extras = ["headers"], version = "^0.4.0"}
 tenacity = "^8.0.1"
