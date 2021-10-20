@@ -20,6 +20,7 @@ fastapi = "^0.70.0"
 ramodels = "^3.0.0"
 ra-utils = {extras = ["headers"], version = "^0.4.0"}
 tenacity = "^8.0.1"
+gql = {extras = ["aiohttp"], allow-prereleases = true, version = "^3.0.0*"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
