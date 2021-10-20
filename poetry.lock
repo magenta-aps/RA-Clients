@@ -261,6 +261,36 @@ pycodestyle = ">=2.7.0,<2.8.0"
 pyflakes = ">=2.3.0,<2.4.0"
 
 [[package]]
+name = "gql"
+version = "3.0.0a6"
+description = "GraphQL client for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+aiohttp = {version = ">=3.7.1,<3.8.0", optional = true, markers = "extra == \"aiohttp\""}
+graphql-core = ">=3.1.5,<3.2"
+yarl = ">=1.6,<2.0"
+
+[package.extras]
+aiohttp = ["aiohttp (>=3.7.1,<3.8.0)"]
+all = ["aiohttp (>=3.7.1,<3.8.0)", "requests (>=2.23,<3)", "websockets (>=9,<10)"]
+dev = ["aiohttp (>=3.7.1,<3.8.0)", "requests (>=2.23,<3)", "websockets (>=9,<10)", "black (==19.10b0)", "check-manifest (>=0.42,<1)", "flake8 (==3.8.1)", "isort (==4.3.21)", "mypy (==0.770)", "sphinx (>=3.0.0,<4)", "sphinx_rtd_theme (>=0.4,<1)", "sphinx-argparse (==0.2.5)", "parse (==1.15.0)", "pytest (==5.4.2)", "pytest-asyncio (==0.11.0)", "pytest-cov (==2.8.1)", "mock (==4.0.2)", "vcrpy (==4.0.2)", "aiofiles"]
+requests = ["requests (>=2.23,<3)"]
+test = ["aiohttp (>=3.7.1,<3.8.0)", "requests (>=2.23,<3)", "websockets (>=9,<10)", "parse (==1.15.0)", "pytest (==5.4.2)", "pytest-asyncio (==0.11.0)", "pytest-cov (==2.8.1)", "mock (==4.0.2)", "vcrpy (==4.0.2)", "aiofiles"]
+test_no_transport = ["parse (==1.15.0)", "pytest (==5.4.2)", "pytest-asyncio (==0.11.0)", "pytest-cov (==2.8.1)", "mock (==4.0.2)", "vcrpy (==4.0.2)", "aiofiles"]
+websockets = ["websockets (>=9,<10)"]
+
+[[package]]
+name = "graphql-core"
+version = "3.1.6"
+description = "GraphQL implementation for Python, a port of GraphQL.js, the JavaScript reference implementation for GraphQL."
+category = "main"
+optional = false
+python-versions = ">=3.6,<4"
+
+[[package]]
 name = "identify"
 version = "2.3.0"
 description = "File identification library for Python"
@@ -568,7 +598,7 @@ headers = ["pydantic (>=1.8.2,<2.0.0)", "requests (>=2.26.0,<3.0.0)", "types-req
 
 [[package]]
 name = "ramodels"
-version = "3.0.0"
+version = "3.1.0"
 description = "Pydantic data models for OS2mo"
 category = "main"
 optional = false
@@ -759,7 +789,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "3d744286ad003e459f21c4a6c2ab8b96ed18b331f14ea0bf83fb56c459524b97"
+content-hash = "bdc6d39ca8a033fa2e009b28bffca8bd522cd8a09d1c76e1288f31701bf4c118"
 
 [metadata.files]
 aiohttp = [
@@ -929,6 +959,13 @@ filelock = [
 flake8 = [
     {file = "flake8-3.9.2-py2.py3-none-any.whl", hash = "sha256:bf8fd333346d844f616e8d47905ef3a3384edae6b4e9beb0c5101e25e3110907"},
     {file = "flake8-3.9.2.tar.gz", hash = "sha256:07528381786f2a6237b061f6e96610a4167b226cb926e2aa2b6b1d78057c576b"},
+]
+gql = [
+    {file = "gql-3.0.0a6.tar.gz", hash = "sha256:bdcbf60bc37b11d6d2f2ed271f69292c4e96d56df7000ba1dad52e487330bdce"},
+]
+graphql-core = [
+    {file = "graphql-core-3.1.6.tar.gz", hash = "sha256:e65975b6a13878f9113a1fa5320760585b522d139944e005936b1b8358d0651a"},
+    {file = "graphql_core-3.1.6-py3-none-any.whl", hash = "sha256:c78d09596d347e1cffd266c5384abfedf43ed1eae08729773bebb3d527fe5a14"},
 ]
 identify = [
     {file = "identify-2.3.0-py2.py3-none-any.whl", hash = "sha256:d1e82c83d063571bb88087676f81261a4eae913c492dafde184067c584bc7c05"},
@@ -1199,8 +1236,8 @@ ra-utils = [
     {file = "ra_utils-0.4.0-py3-none-any.whl", hash = "sha256:93441f4302710ff5f75d9e0451e6ead81186c2fd47124c879098216d4e5d5db4"},
 ]
 ramodels = [
-    {file = "ramodels-3.0.0-py3-none-any.whl", hash = "sha256:2ed1ca40a74c813578ae83781c31788a4741412ede4222430ce77899760953c2"},
-    {file = "ramodels-3.0.0.tar.gz", hash = "sha256:ade5fdb2381c6a95768df312984ec382bdf5b62d679c87400bac0eae4a2341d8"},
+    {file = "ramodels-3.1.0-py3-none-any.whl", hash = "sha256:580fdb31c924276aa0f785909f2dc7274263578d53e75fe7649c2dc8e089ffd3"},
+    {file = "ramodels-3.1.0.tar.gz", hash = "sha256:2a3a4acb97c59ff37a59e469c5ee227728e0fa5dc71784818d3670b77c615c77"},
 ]
 regex = [
     {file = "regex-2021.10.8-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:981c786293a3115bc14c103086ae54e5ee50ca57f4c02ce7cf1b60318d1e8072"},
