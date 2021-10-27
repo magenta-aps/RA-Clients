@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "raclients"
-version = "0.5.0"
+version = "0.6.0"
 description = "Clients for OS2mo/LoRa"
 authors = ["Magenta <info@magenta.dk>"]
 license = "MPL-2.0"
@@ -20,6 +20,9 @@ fastapi = "^0.70.0"
 ramodels = "^3.0.0"
 ra-utils = {extras = ["headers"], version = "^0.4.0"}
 tenacity = "^8.0.1"
+httpx = "^0.20.0"
+respx = "^0.18.2"
+Authlib = "^0.15.5"
 gql = {extras = ["aiohttp"], allow-prereleases = true, version = "^3.0.0*"}
 
 [tool.poetry.dev-dependencies]
