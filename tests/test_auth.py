@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import AsyncGenerator
+from typing import Generator
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
 from unittest.mock import patch
 
+import httpx
 import pytest
-from httpx import Response
 from pydantic import AnyHttpUrl
 from pydantic import parse_obj_as
 from respx import MockRouter
@@ -26,29 +28,22 @@ def client_params() -> dict:
 
 
 @pytest.fixture
-def base_client(client_params) -> BaseAuthenticatedClient:
+def base_client(client_params: dict) -> BaseAuthenticatedClient:
     return BaseAuthenticatedClient(session=None, **client_params)
 
 
 @pytest.fixture
-def client(client_params) -> AuthenticatedHTTPXClient:
-    return AuthenticatedHTTPXClient(**client_params)
+def client(client_params: dict) -> Generator[AuthenticatedHTTPXClient, None, None]:
+    with AuthenticatedHTTPXClient(**client_params) as client:
+        yield client
 
 
 @pytest.fixture
-def async_client(client_params) -> AuthenticatedAsyncHTTPXClient:
-    return AuthenticatedAsyncHTTPXClient(**client_params)
-
-
-@pytest.fixture
-def token_response() -> Response:
-    return Response(
-        200,
-        json={
-            "token_type": "Bearer",
-            "access_token": "Very.Secret",
-        },
-    )
+async def async_client(
+    client_params: dict,
+) -> AsyncGenerator[AuthenticatedAsyncHTTPXClient, None]:
+    async with AuthenticatedAsyncHTTPXClient(**client_params) as client:
+        yield client
 
 
 def test_authenticated_httpx_client_init(client: AuthenticatedHTTPXClient):
@@ -126,7 +121,7 @@ async def test_async_authenticated_httpx_client_fetches_token(
 def test_integration_request(
     client: AuthenticatedHTTPXClient,
     respx_mock: MockRouter,
-    token_response: Response,
+    token_response: httpx.Response,
 ):
     respx_mock.post(url=client.token_endpoint).mock(return_value=token_response)
     respx_mock.get("http://www.example.org")
@@ -139,7 +134,7 @@ def test_integration_request(
 async def test_integration_async_request(
     async_client: AuthenticatedAsyncHTTPXClient,
     respx_mock: MockRouter,
-    token_response: Response,
+    token_response: httpx.Response,
 ):
     respx_mock.post(url=async_client.token_endpoint).mock(return_value=token_response)
     respx_mock.get("http://www.example.org")
