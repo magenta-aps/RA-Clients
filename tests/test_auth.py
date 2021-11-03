@@ -1,13 +1,12 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import AsyncGenerator
+from typing import Generator
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
 from unittest.mock import patch
 
 import pytest
-from httpx import Response
-from pydantic import AnyHttpUrl
-from pydantic import parse_obj_as
 from respx import MockRouter
 
 from raclients.auth import AuthenticatedAsyncHTTPXClient
@@ -16,47 +15,29 @@ from raclients.auth import BaseAuthenticatedClient
 
 
 @pytest.fixture
-def client_params() -> dict:
-    return dict(
-        client_id="AzureDiamond",
-        client_secret="hunter2",
-        auth_server=parse_obj_as(AnyHttpUrl, "http://bash.org"),
-        auth_realm="mordor",
-    )
-
-
-@pytest.fixture
-def base_client(client_params) -> BaseAuthenticatedClient:
+def base_client(client_params: dict) -> BaseAuthenticatedClient:
     return BaseAuthenticatedClient(session=None, **client_params)
 
 
 @pytest.fixture
-def client(client_params) -> AuthenticatedHTTPXClient:
-    return AuthenticatedHTTPXClient(**client_params)
+def client(client_params: dict) -> Generator[AuthenticatedHTTPXClient, None, None]:
+    with AuthenticatedHTTPXClient(**client_params) as client:
+        yield client
 
 
 @pytest.fixture
-def async_client(client_params) -> AuthenticatedAsyncHTTPXClient:
-    return AuthenticatedAsyncHTTPXClient(**client_params)
-
-
-@pytest.fixture
-def token_response() -> Response:
-    return Response(
-        200,
-        json={
-            "token_type": "Bearer",
-            "access_token": "Very.Secret",
-        },
-    )
+async def async_client(
+    client_params: dict,
+) -> AsyncGenerator[AuthenticatedAsyncHTTPXClient, None]:
+    async with AuthenticatedAsyncHTTPXClient(**client_params) as client:
+        yield client
 
 
 def test_authenticated_httpx_client_init(client: AuthenticatedHTTPXClient):
     assert client.client_id == "AzureDiamond"
     assert client.client_secret == "hunter2"
-    assert (
-        client.token_endpoint
-        == "http://bash.org/realms/mordor/protocol/openid-connect/token"
+    assert client.token_endpoint == (
+        "http://keycloak.example.org/auth/realms/mordor/protocol/openid-connect/token"
     )
     assert client.metadata["token_endpoint"] == client.token_endpoint
     assert client.metadata["grant_type"] == "client_credentials"
@@ -72,16 +53,12 @@ def test_should_not_fetch_token_if_set(base_client: BaseAuthenticatedClient):
     assert base_client.should_fetch_token("http://www.example.org") is False
 
 
-def test_should_not_fetch_token_if_token_endpoint(
-    base_client: BaseAuthenticatedClient,
-):
+def test_should_not_fetch_token_if_token_endpoint(base_client: BaseAuthenticatedClient):
     base_client.token = None
     assert base_client.should_fetch_token(base_client.token_endpoint) is False
 
 
-def test_should_not_fetch_token_if_withhold_token(
-    base_client: BaseAuthenticatedClient,
-):
+def test_should_not_fetch_token_if_withhold_token(base_client: BaseAuthenticatedClient):
     base_client.token = None
     assert (
         base_client.should_fetch_token("http://www.example.org", withhold_token=True)
@@ -115,34 +92,41 @@ async def test_async_authenticated_httpx_client_fetches_token(
     with patch(
         "authlib.integrations.httpx_client.oauth2_client.AsyncOAuth2Client.request"
     ) as request_mock:
-        await async_client.get("http://www.example.org")
-        # test that it only fetches a token once
-        await async_client.get("http://www.example.net")
+        await async_client.get("http://www.example.org")  # test that it only fetches a
+        await async_client.get("http://www.example.net")  # token once
 
     async_client.fetch_token.assert_awaited_once()
     assert request_mock.call_count == 2
 
 
-def test_integration_request(
+def test_integration_sends_token_in_request(
     client: AuthenticatedHTTPXClient,
     respx_mock: MockRouter,
-    token_response: Response,
+    token_mock: str,
 ):
-    respx_mock.post(url=client.token_endpoint).mock(return_value=token_response)
-    respx_mock.get("http://www.example.org")
+    respx_mock.get(
+        "http://www.example.org",
+        headers={
+            "Authorization": f"Bearer {token_mock}",
+        },
+    )
 
     response = client.get("http://www.example.org")
     assert response.status_code == 200
 
 
 @pytest.mark.asyncio
-async def test_integration_async_request(
+async def test_integration_async_sends_token_in_request(
     async_client: AuthenticatedAsyncHTTPXClient,
     respx_mock: MockRouter,
-    token_response: Response,
+    token_mock: str,
 ):
-    respx_mock.post(url=async_client.token_endpoint).mock(return_value=token_response)
-    respx_mock.get("http://www.example.org")
+    respx_mock.get(
+        "http://www.example.org",
+        headers={
+            "Authorization": f"Bearer {token_mock}",
+        },
+    )
 
     response = await async_client.get("http://www.example.org")
     assert response.status_code == 200
