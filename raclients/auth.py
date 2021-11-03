@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
+from typing import Optional
 
 from authlib.integrations.httpx_client import (
     AsyncOAuth2Client as AsyncHTTPXOAuth2Client,
@@ -18,8 +19,25 @@ class BaseAuthenticatedClient(OAuth2Client):
         auth_server: AnyHttpUrl,
         auth_realm: str,
         *args: Any,
+        grant_type: Optional[str] = "client_credentials",
+        token_endpoint_auth_method: Optional[str] = "client_secret_post",
         **kwargs: Any
     ):
+        """
+        Base used to implement authenticated HTTPX clients. Does not work on its own.
+
+        Args:
+            client_id: Client identifier used to obtain tokens.
+            client_secret: Client secret used to obtain tokens.
+            auth_server: HTTP URL of the authentication server.
+            auth_realm: Keycloak realm used for authentication.
+            *args: Other arguments, passed to Authlib's OAuth2Client.
+            grant_type: OAuth2 grant type.
+            token_endpoint_auth_method: RFC7591 client authentication method. Authlib
+                                        supports 'client_secret_basic' (default),
+                                        'client_secret_post', and None.
+            **kwargs: Other keyword arguments, passed to Authlib's OAuth2Client.
+        """
         self.auth_server = auth_server
         self.auth_realm = auth_realm
 
@@ -27,13 +45,18 @@ class BaseAuthenticatedClient(OAuth2Client):
             *args,
             client_id=client_id,
             client_secret=client_secret,
-            grant_type="client_credentials",
+            grant_type=grant_type,
             token_endpoint=self.token_endpoint,
+            token_endpoint_auth_method=token_endpoint_auth_method,
             **kwargs,
         )
 
     @property
     def token_endpoint(self) -> str:
+        """
+        Returns: Token endpoint based on given auth server and realm. Currently only
+                 supports keycloak.
+        """
         return "{server}/realms/{realm}/protocol/openid-connect/token".format(
             server=self.auth_server,
             realm=self.auth_realm,
@@ -51,6 +74,8 @@ class BaseAuthenticatedClient(OAuth2Client):
             withhold_token: Forwarded from `self.request(..., withhold_token=False)`. If
                             this is set, Authlib does not pass a token in the request,
                             in which case there is no need to fetch one either.
+
+        Returns: True if a token should be fetched. False otherwise.
         """
         return not withhold_token and self.token is None and url != self.token_endpoint
 

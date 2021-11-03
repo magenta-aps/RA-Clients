@@ -13,7 +13,7 @@ class AuthSettings(BaseSettings):
     Settings required for authentication against OS2mo.
     """
 
-    client_id: str = "mo"
+    client_id: str = "dipex"
     client_secret: str
     auth_realm: str = "mo"
     auth_server: AnyHttpUrl = Field("http://localhost:8081/auth")
