@@ -8,6 +8,7 @@ from pydantic import parse_obj_as
 from respx import MockRouter
 
 from raclients.graph.client import GraphQLClient
+from raclients.graph.transport import HTTPXTransport
 
 url = parse_obj_as(AnyHttpUrl, "https://os2mo.example.org/gql")
 
@@ -33,6 +34,37 @@ def query_data(token_mock: str, respx_mock: MockRouter) -> dict:
     )
 
     return data
+
+
+def test_init_client(client_params_env: dict):
+    with GraphQLClient(url=url, sync=True):
+        pass
+
+
+@pytest.mark.asyncio
+async def test_init_async_client(client_params_env: dict):
+    async with GraphQLClient(url=url):
+        pass
+
+
+def test_init_client_with_client_args():
+    client_args = dict(
+        client_id="a",
+        client_secret="b",
+        auth_server="c",
+        auth_realm="d",
+    )
+    with GraphQLClient(url=url, sync=True, client_args=client_args) as client:
+        assert client.transport.client_args == client_args
+
+
+def test_init_client_with_transport():
+    transport = HTTPXTransport(
+        url="http://localhost:5000/graphql",
+        client_cls=httpx.Client,
+    )
+    with GraphQLClient(transport=transport):
+        pass
 
 
 def test_integration_client(client_params_env: dict, token_mock: str, query_data: dict):
