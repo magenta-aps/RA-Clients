@@ -43,6 +43,14 @@ def test_authenticated_httpx_client_init(client: AuthenticatedHTTPXClient):
     assert client.metadata["grant_type"] == "client_credentials"
 
 
+def test_authenticated_httpx_client_init_from_env(client_params_env: dict):
+    with AuthenticatedHTTPXClient() as client:
+        assert client.client_id == client_params_env["client_id"]
+        assert client.client_secret == client_params_env["client_secret"]
+        assert client.auth_server == client_params_env["auth_server"]
+        assert client.auth_realm == client_params_env["auth_realm"]
+
+
 def test_should_fetch_token_if_not_set(base_client: BaseAuthenticatedClient):
     base_client.token = None
     assert base_client.should_fetch_token("http://www.example.org") is True
