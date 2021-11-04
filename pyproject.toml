@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "raclients"
-version = "0.1.7"
+version = "0.7.3"
 description = "Clients for OS2mo/LoRa"
 authors = ["Magenta <info@magenta.dk>"]
 license = "MPL-2.0"
@@ -14,10 +14,16 @@ python = "^3.8"
 aiohttp = "^3.7.4"
 more-itertools = "^8.7.0"
 tqdm = "^4.60.0"
-pydantic = "^1.8.1"
-ramodels = "^0.3.3"
+pydantic = "^1.8.2"
 jsonschema = "^3.2.0"
-fastapi = "^0.65.1"
+fastapi = "^0.70.0"
+ramodels = "^3.0.0"
+ra-utils = {extras = ["headers"], version = "^0.4.0"}
+httpx = "^0.20.0"
+respx = "^0.18.2"
+Authlib = "^0.15.5"
+gql = {allow-prereleases = true, version = "3.0.0b0"}
+structlog = "^21.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"

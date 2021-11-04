@@ -9,29 +9,31 @@ from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Type
 
+from aiohttp import ClientResponseError
 from fastapi.encoders import jsonable_encoder
 from pydantic import AnyHttpUrl
-from ramodels.mo import Address
 from ramodels.mo import Employee
-from ramodels.mo import Engagement
-from ramodels.mo import EngagementAssociation
-from ramodels.mo import Manager
+from ramodels.mo import FacetClass
 from ramodels.mo import OrganisationUnit
 from ramodels.mo._shared import MOBase
+from ramodels.mo.details import Address
+from ramodels.mo.details import Engagement
+from ramodels.mo.details import EngagementAssociation
+from ramodels.mo.details import Manager
 
 from raclients.modelclientbase import ModelClientBase
 
 
 class ModelClient(ModelClientBase):
-    __mo_path_map = {
+    __mo_path_map: Dict[MOBase, str] = {
         OrganisationUnit: "/service/ou/create",
         Employee: "/service/e/create",
         Engagement: "/service/details/create",
         EngagementAssociation: "/service/details/create",
         Manager: "/service/details/create",
         Address: "/service/details/create",
+        FacetClass: "/service/f/{facet_uuid}/",
     }
 
     def __init__(
@@ -39,10 +41,12 @@ class ModelClient(ModelClientBase):
         base_url: AnyHttpUrl = AnyHttpUrl(
             "http://localhost:5000", scheme="http", host="localhost"
         ),
+        force: bool = False,
         *args: Any,
-        **kwargs: Optional[Any]
+        **kwargs: Optional[Any],
     ):
         super().__init__(base_url, *args, **kwargs)  # type: ignore
+        self.force = int(force)
 
     def _get_healthcheck_tuples(self) -> List[Tuple[str, str]]:
         return [("/version/", "mo_version")]
@@ -50,17 +54,23 @@ class ModelClient(ModelClientBase):
     def _get_path_map(self) -> Dict[MOBase, str]:
         return self.__mo_path_map
 
-    async def _post_single_to_backend(
-        self, current_type: Type[MOBase], obj: MOBase
-    ) -> Any:
+    async def _post_single_to_backend(self, current_type: MOBase, obj: MOBase) -> Any:
         session = await self._verify_session()
+        # Note that we additionally format the object's fields onto the path mapping to
+        # support schemes such as /service/f/{facet_uuid}/, where facet_uuid is
+        # retrieved from obj.facet_uuid.
+        path = self.__mo_path_map[current_type].format_map(obj.dict())
+        post_url = f"{self._base_url}{path}?force={self.force}"
 
-        async with session.post(
-            self._base_url + self.__mo_path_map[current_type],
-            json=jsonable_encoder(obj),
-        ) as response:
-            response.raise_for_status()
-            return await response.json()
+        async with session.post(post_url, json=jsonable_encoder(obj)) as response:
+            resp = await response.json()
+            try:
+                response.raise_for_status()
+            except ClientResponseError as client_err:
+                if "description" in resp:
+                    client_err.message = resp["description"]
+                raise client_err
+            return resp
 
     async def load_mo_objs(
         self, objs: Iterable[MOBase], disable_progressbar: bool = False
