@@ -84,17 +84,12 @@ class AuthenticatedHTTPXClient(BaseAuthenticatedClient, HTTPXOAuth2Client):
     """
     Synchronous HTTPX Client that automatically authenticates requests.
 
-    Example Usage:
-    ```
-    with AuthenticatedHTTPXClient(**config.get_auth_settings().dict()) as client:
-        r = client.get("https://example.org")
-    ```
-    or
+    Example usage:
     ```
     with AuthenticatedHTTPXClient(
         client_id="AzureDiamond",
         client_secret="hunter2",
-        auth_server=parse_obj_as(AnyHttpUrl, "http://bash.org"),
+        auth_server=parse_obj_as(AnyHttpUrl, "http://keycloak.example.org/auth"),
         auth_realm="mordor",
     ) as client:
         r = client.get("https://example.org")
@@ -118,22 +113,15 @@ class AuthenticatedAsyncHTTPXClient(BaseAuthenticatedClient, AsyncHTTPXOAuth2Cli
     """
     Asynchronous HTTPX Client that automatically authenticates requests.
 
-    Example Usage:
-    ```
-    async with AuthenticatedAsyncHTTPXClient(
-        **config.get_auth_settings().dict()
-    ) as client:
-        r = client.get("https://example.org")
-    ```
-    or
+    Example usage:
     ```
     async with AuthenticatedAsyncHTTPXClient(
         client_id="AzureDiamond",
         client_secret="hunter2",
-        auth_server=parse_obj_as(AnyHttpUrl, "http://bash.org"),
+        auth_server=parse_obj_as(AnyHttpUrl, "http://keycloak.example.org/auth"),
         auth_realm="mordor",
     ) as client:
-        r = client.get("https://example.org")
+        r = await client.get("https://example.org")
     ```
     """
 
