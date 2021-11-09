@@ -8,6 +8,8 @@ from authlib.integrations.httpx_client import (
 )
 from authlib.integrations.httpx_client import OAuth2Client as HTTPXOAuth2Client
 from authlib.oauth2 import OAuth2Client
+from httpx import USE_CLIENT_DEFAULT
+from httpx._types import AuthTypes
 from pydantic import AnyHttpUrl
 
 
@@ -62,7 +64,12 @@ class BaseAuthenticatedClient(OAuth2Client):
             realm=self.auth_realm,
         )
 
-    def should_fetch_token(self, url: str, withhold_token: bool = False) -> bool:
+    def should_fetch_token(
+        self,
+        url: str,
+        withhold_token: bool = False,
+        auth: AuthTypes = USE_CLIENT_DEFAULT,  # type: ignore[assignment]
+    ) -> bool:
         """
         Determine if we should fetch a token. Authlib automatically _refreshes_ tokens,
         but it does not fetch the initial one. Therefore, we should fetch a token the
@@ -74,10 +81,18 @@ class BaseAuthenticatedClient(OAuth2Client):
             withhold_token: Forwarded from `self.request(..., withhold_token=False)`. If
                             this is set, Authlib does not pass a token in the request,
                             in which case there is no need to fetch one either.
+            auth: Forwarded from `self.request(..., auth=USE_CLIENT_DEFAULT)`. If this
+                  is set, Authlib does not pass a token in the request, in which case
+                  there is no need to fetch one either.
 
         Returns: True if a token should be fetched. False otherwise.
         """
-        return not withhold_token and self.token is None and url != self.token_endpoint
+        return (
+            not withhold_token
+            and auth is USE_CLIENT_DEFAULT
+            and self.token is None
+            and url != self.token_endpoint
+        )
 
 
 class AuthenticatedHTTPXClient(BaseAuthenticatedClient, HTTPXOAuth2Client):
@@ -126,13 +141,18 @@ class AuthenticatedAsyncHTTPXClient(BaseAuthenticatedClient, AsyncHTTPXOAuth2Cli
     """
 
     async def request(
-        self, method: str, url: str, withhold_token: bool = False, **kwargs: Any
+        self,
+        method: str,
+        url: str,
+        withhold_token: bool = False,
+        auth: AuthTypes = USE_CLIENT_DEFAULT,  # type: ignore[assignment]
+        **kwargs: Any
     ) -> Any:
         """
         Decorate Authlib's AsyncOAuth2Client.request() to automatically fetch a token
         the first time a request is made. `withhold_token` is extracted from the
         arguments since it is needed to determine if we should fetch_token().
         """
-        if self.should_fetch_token(url, withhold_token):
+        if self.should_fetch_token(url, withhold_token, auth):
             await self.fetch_token()
-        return await super().request(method, url, withhold_token, **kwargs)
+        return await super().request(method, url, withhold_token, auth, **kwargs)
