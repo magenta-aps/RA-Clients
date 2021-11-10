@@ -66,6 +66,11 @@ def test_should_not_fetch_token_if_withhold_token(base_client: BaseAuthenticated
     )
 
 
+def test_should_not_fetch_token_if_no_auth(base_client: BaseAuthenticatedClient):
+    base_client.token = None
+    assert base_client.should_fetch_token("http://www.example.org", auth=None) is False
+
+
 def test_authenticated_httpx_client_fetches_token(client: AuthenticatedHTTPXClient):
     def set_token():
         client.token = True
