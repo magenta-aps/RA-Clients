@@ -36,8 +36,7 @@ class BaseAuthenticatedClient(OAuth2Client):
             *args: Other arguments, passed to Authlib's OAuth2Client.
             grant_type: OAuth2 grant type.
             token_endpoint_auth_method: RFC7591 client authentication method. Authlib
-                                        supports 'client_secret_basic' (default),
-                                        'client_secret_post', and None.
+             supports 'client_secret_basic' (default), 'client_secret_post', and None.
             **kwargs: Other keyword arguments, passed to Authlib's OAuth2Client.
         """
         self.auth_server = auth_server
@@ -57,7 +56,7 @@ class BaseAuthenticatedClient(OAuth2Client):
     def token_endpoint(self) -> str:
         """
         Returns: Token endpoint based on given auth server and realm. Currently only
-                 supports keycloak.
+         supports keycloak.
         """
         return "{server}/realms/{realm}/protocol/openid-connect/token".format(
             server=self.auth_server,
@@ -79,11 +78,11 @@ class BaseAuthenticatedClient(OAuth2Client):
             url: The URL of the request we are in the context of. Used to avoid
                  recursion, since fetching a token also uses our caller self.request().
             withhold_token: Forwarded from `self.request(..., withhold_token=False)`. If
-                            this is set, Authlib does not pass a token in the request,
-                            in which case there is no need to fetch one either.
+             this is set, Authlib does not pass a token in the request, in which case
+             there is no need to fetch one either.
             auth: Forwarded from `self.request(..., auth=USE_CLIENT_DEFAULT)`. If this
-                  is set, Authlib does not pass a token in the request, in which case
-                  there is no need to fetch one either.
+             is set, Authlib does not pass a token in the request, in which case there
+             is no need to fetch one either.
 
         Returns: True if a token should be fetched. False otherwise.
         """
@@ -112,16 +111,29 @@ class AuthenticatedHTTPXClient(BaseAuthenticatedClient, HTTPXOAuth2Client):
     """
 
     def request(
-        self, method: str, url: str, withhold_token: bool = False, **kwargs: Any
+        self,
+        method: str,
+        url: str,
+        withhold_token: bool = False,
+        auth: AuthTypes = USE_CLIENT_DEFAULT,  # type: ignore[assignment]
+        **kwargs: Any
     ) -> Any:
         """
         Decorate Authlib's OAuth2Client.request() to automatically fetch a token the
-        first time a request is made. `withhold_token` is extracted from the arguments
-        since it is needed to determine if we should fetch_token().
+        first time a request is made.
+
+        Args:
+            method: HTTP method. Forwarded to superclass.
+            url: Request URL. Needed to determine if we should fetch_token().
+            withhold_token: Needed to determine if we should fetch_token().
+            auth: Authentication method. Needed to determine if we should fetch_token().
+            **kwargs: Not used. Forwarded to superclass.
+
+        Returns: HTTPX Response.
         """
-        if self.should_fetch_token(url, withhold_token):
+        if self.should_fetch_token(url, withhold_token, auth):
             self.fetch_token()
-        return super().request(method, url, withhold_token, **kwargs)
+        return super().request(method, url, withhold_token, auth, **kwargs)
 
 
 class AuthenticatedAsyncHTTPXClient(BaseAuthenticatedClient, AsyncHTTPXOAuth2Client):
@@ -150,8 +162,16 @@ class AuthenticatedAsyncHTTPXClient(BaseAuthenticatedClient, AsyncHTTPXOAuth2Cli
     ) -> Any:
         """
         Decorate Authlib's AsyncOAuth2Client.request() to automatically fetch a token
-        the first time a request is made. `withhold_token` is extracted from the
-        arguments since it is needed to determine if we should fetch_token().
+        the first time a request is made.
+
+        Args:
+            method: HTTP method. Forwarded to superclass.
+            url: Request URL. Needed to determine if we should fetch_token().
+            withhold_token: Needed to determine if we should fetch_token().
+            auth: Authentication method. Needed to determine if we should fetch_token().
+            **kwargs: Not used. Forwarded to superclass.
+
+        Returns: HTTPX Response.
         """
         if self.should_fetch_token(url, withhold_token, auth):
             await self.fetch_token()

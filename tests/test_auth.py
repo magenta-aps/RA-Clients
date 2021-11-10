@@ -71,6 +71,37 @@ def test_should_not_fetch_token_if_no_auth(base_client: BaseAuthenticatedClient)
     assert base_client.should_fetch_token("http://www.example.org", auth=None) is False
 
 
+def test_authenticated_httpx_client_decorates_request(client: AuthenticatedHTTPXClient):
+    with patch(
+        "authlib.integrations.httpx_client.oauth2_client.OAuth2Client.request"
+    ) as request_mock:
+        client.request(
+            method="1",
+            url="2",
+            withhold_token=True,
+            auth=("4", "5"),
+            some_kwarg=5,
+        )
+        request_mock.assert_called_once_with("1", "2", True, ("4", "5"), some_kwarg=5)
+
+
+@pytest.mark.asyncio
+async def test_async_authenticated_httpx_client_decorates_request(
+    async_client: AuthenticatedAsyncHTTPXClient,
+):
+    with patch(
+        "authlib.integrations.httpx_client.oauth2_client.AsyncOAuth2Client.request"
+    ) as request_mock:
+        await async_client.request(
+            method="1",
+            url="2",
+            withhold_token=True,
+            auth=("4", "5"),
+            some_kwarg=5,
+        )
+        request_mock.assert_called_once_with("1", "2", True, ("4", "5"), some_kwarg=5)
+
+
 def test_authenticated_httpx_client_fetches_token(client: AuthenticatedHTTPXClient):
     def set_token():
         client.token = True
