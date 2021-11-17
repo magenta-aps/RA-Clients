@@ -8,12 +8,7 @@ from typing import Union
 
 import httpx
 from gql import Client as GQLClient
-from gql.transport import AsyncTransport
-from gql.transport import Transport
-from pydantic import AnyHttpUrl
-from pydantic import parse_obj_as
 
-from raclients import config
 from raclients.auth import AuthenticatedAsyncHTTPXClient
 from raclients.auth import AuthenticatedHTTPXClient
 from raclients.graph.transport import AsyncHTTPXTransport
@@ -24,86 +19,76 @@ from raclients.graph.transport import HTTPXTransport
 class GraphQLClient(GQLClient):
     def __init__(
         self,
+        url: str,
+        client_id: str,
+        client_secret: str,
+        auth_realm: str,
+        auth_server: str,
         *args: Any,
-        url: str = parse_obj_as(AnyHttpUrl, "http://mo:5000/graphql"),
-        transport: Optional[Union[Transport, AsyncTransport]] = None,
         sync: bool = False,
-        client_args: Optional[Dict[str, Any]] = None,
+        httpx_client_kwargs: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ):
         """
-        GQL Client wrapper, providing defaults and automatic authentication for OS2mo.
+        GQL Client wrapper providing defaults and automatic authentication for OS2mo.
 
-        Usage, with automatic authentication from environment variables:
-        ```
-        async with GraphQLClient(url="http://os2mo.example.org/graphql") as client:
-            query = gql(
-                ""'
-                query MOQuery {
-                  ...
-                }
-                ""'
-            )
-            result = await client.execute(query)
-            print(result)
-        ```
+        Args:
+            url: URL of the GraphQL server endpoint.
+            client_id: Keycloak client id used for authentication.
+            client_secret: Keycloak client secret used for authentication.
+            auth_realm: Keycloak auth realm used for authentication.
+            auth_server: URL of the Keycloak server used for authentication.
+            *args: Extra arguments passed to the superclass init method.
+            sync: If true, this client is initialised with a synchronous transport.
+            httpx_client_kwargs: Extra keyword arguments passed to the HTTPX client.
+            **kwargs: Extra keyword arguments passed to the superclass init method.
 
-        Or synchronously:
-        ```
-        with GraphQLClient(sync=True) as client:
-            query = gql(...)
-            result = client.execute(query)
-            print(result)
-        ```
+        Example:
+            Asynchronously::
 
-        Authentication parameters can be given directly, instead of being loaded from
-        the environment:
-        ```
-        client_args=dict(
-            client_id="AzureDiamond",
-            client_secret="hunter2",
-            auth_realm="mordor",
-            auth_server="http://localhost:8081/auth",
-        )
-        async with GraphQLClient(
-            url="http://os2mo.example.org/graphql",
-            client_args=client_args,
-        ) as client:
-            ...
-        ```
+                client = GraphQLClient(
+                    url="http://os2mo.example.org/graphql",
+                    client_id="AzureDiamond",
+                    client_secret="hunter2",
+                    auth_realm="mordor",
+                    auth_server="http://keycloak.example.org:8081/auth",
+                )
+                async with client as session:
+                    query = gql(
+                        ""'
+                        query MOQuery {
+                          ...
+                        }
+                        ""'
+                    )
+                    result = await session.execute(query)
+                    print(result)
 
-        It is alo possible to configure the HTTPX transport manually. Note that the
-        'url', 'sync', and 'client_args' parameters are ignored in this case.
-        ```
-        transport = AsyncHTTPXTransport(
-            url="http://localhost:5000/graphql",
-            client_cls=AuthenticatedAsyncHTTPXClient,
-            client_args=dict(
-                client_id="AzureDiamond",
-                client_secret="hunter2",
-                auth_realm="mordor",
-                auth_server="http://localhost:8081/auth",
-            )
-        )
-        async with GraphQLClient(transport=transport) as client:
-            ...
-        ```
+            Or synchronously::
+
+                with GraphQLClient(sync=True) as session:
+                    result = session.execute(query)
         """
-        if transport is None:
-            transport_cls: Type[BaseHTTPXTransport]  # you happy now, mypy?
-            client_cls: Type[Union[httpx.Client, httpx.AsyncClient]]
+        transport_cls: Type[BaseHTTPXTransport]  # you happy now, mypy?
+        client_cls: Type[Union[httpx.Client, httpx.AsyncClient]]
 
-            if sync:
-                transport_cls = HTTPXTransport
-                client_cls = AuthenticatedHTTPXClient
-            else:
-                transport_cls = AsyncHTTPXTransport
-                client_cls = AuthenticatedAsyncHTTPXClient
+        if sync:
+            transport_cls = HTTPXTransport
+            client_cls = AuthenticatedHTTPXClient
+        else:
+            transport_cls = AsyncHTTPXTransport
+            client_cls = AuthenticatedAsyncHTTPXClient
 
-            transport = transport_cls(
-                url=url,
-                client_cls=client_cls,
-                client_args=client_args or config.get_auth_settings().dict(),
-            )
+        transport = transport_cls(
+            url=url,
+            client_cls=client_cls,
+            client_args=dict(
+                client_id=client_id,
+                client_secret=client_secret,
+                auth_realm=auth_realm,
+                auth_server=auth_server,
+                **(httpx_client_kwargs or {}),
+            ),
+        )
 
         super().__init__(*args, transport=transport, **kwargs)

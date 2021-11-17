@@ -8,7 +8,6 @@ from pydantic import parse_obj_as
 from respx import MockRouter
 
 from raclients.graph.client import GraphQLClient
-from raclients.graph.transport import HTTPXTransport
 
 url = parse_obj_as(AnyHttpUrl, "https://os2mo.example.org/gql")
 
@@ -36,39 +35,25 @@ def query_data(token_mock: str, respx_mock: MockRouter) -> dict:
     return data
 
 
-def test_init_client(client_params_env: dict):
-    with GraphQLClient(url=url, sync=True):
-        pass
+def test_init_client(client_params: dict):
+    httpx_client_kwargs = dict(timeout=123)
+    with GraphQLClient(
+        url=url, sync=True, **client_params, httpx_client_kwargs=httpx_client_kwargs
+    ) as session:
+        assert session.transport.client_args == {**client_params, **httpx_client_kwargs}
 
 
 @pytest.mark.asyncio
-async def test_init_async_client(client_params_env: dict):
-    async with GraphQLClient(url=url):
-        pass
+async def test_init_async_client(client_params: dict):
+    httpx_client_kwargs = dict(timeout=123)
+    async with GraphQLClient(
+        url=url, **client_params, httpx_client_kwargs=httpx_client_kwargs
+    ) as session:
+        assert session.transport.client_args == {**client_params, **httpx_client_kwargs}
 
 
-def test_init_client_with_client_args():
-    client_args = dict(
-        client_id="a",
-        client_secret="b",
-        auth_server="c",
-        auth_realm="d",
-    )
-    with GraphQLClient(url=url, sync=True, client_args=client_args) as client:
-        assert client.transport.client_args == client_args
-
-
-def test_init_client_with_transport():
-    transport = HTTPXTransport(
-        url="http://localhost:5000/graphql",
-        client_cls=httpx.Client,
-    )
-    with GraphQLClient(transport=transport):
-        pass
-
-
-def test_integration_client(client_params_env: dict, token_mock: str, query_data: dict):
-    with GraphQLClient(url=url, sync=True) as client:
+def test_integration_client(client_params: dict, token_mock: str, query_data: dict):
+    with GraphQLClient(url=url, sync=True, **client_params) as session:
         query = gql(
             """
             query MOQuery {
@@ -78,15 +63,15 @@ def test_integration_client(client_params_env: dict, token_mock: str, query_data
             }
             """
         )
-        result = client.execute(query)
+        result = session.execute(query)
         assert result == query_data
 
 
 @pytest.mark.asyncio
 async def test_integration_async_client(
-    client_params_env: dict, token_mock: str, query_data: dict
+    client_params: dict, token_mock: str, query_data: dict
 ):
-    async with GraphQLClient(url=url) as client:
+    async with GraphQLClient(url=url, **client_params) as session:
         query = gql(
             """
             query MOQuery {
@@ -96,5 +81,5 @@ async def test_integration_async_client(
             }
             """
         )
-        result = await client.execute(query)
+        result = await session.execute(query)
         assert result == query_data
