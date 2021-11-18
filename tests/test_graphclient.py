@@ -1,35 +1,43 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
+
 import httpx
 import pytest
 from gql import gql
+from graphql import DocumentNode
 from pydantic import AnyHttpUrl
 from pydantic import parse_obj_as
 from respx import MockRouter
 
 from raclients.graph.client import GraphQLClient
+from raclients.graph.client import PersistentGraphQLClient
 
 url = parse_obj_as(AnyHttpUrl, "https://os2mo.example.org/gql")
 
 
 @pytest.fixture
-def query_data(token_mock: str, respx_mock: MockRouter) -> dict:
+def query() -> Any:
+    return gql(
+        """
+        query MOQuery {
+            users {
+                id
+            }
+        }
+        """
+    )
+
+
+@pytest.fixture
+def query_mock(token_mock: str, respx_mock: MockRouter) -> dict:
     data = {"a": 1}
     respx_mock.post(
         url=url,
-        json={
-            "query": "query MOQuery {\n  users {\n    id\n  }\n}\n",
-        },
-        headers={
-            "Authorization": f"Bearer {token_mock}",
-        },
+        json={"query": "query MOQuery {\n  users {\n    id\n  }\n}\n"},
+        headers={"Authorization": f"Bearer {token_mock}"},
     ).mock(
-        return_value=httpx.Response(
-            200,
-            json={
-                "data": data,
-            },
-        )
+        return_value=httpx.Response(200, json={"data": data}),
     )
 
     return data
@@ -52,34 +60,41 @@ async def test_init_async_client(client_params: dict):
         assert session.transport.client_args == {**client_params, **httpx_client_kwargs}
 
 
-def test_integration_client(client_params: dict, token_mock: str, query_data: dict):
+def test_integration_client(
+    client_params: dict, token_mock: str, query: DocumentNode, query_mock: dict
+):
     with GraphQLClient(url=url, sync=True, **client_params) as session:
-        query = gql(
-            """
-            query MOQuery {
-                users {
-                    id
-                }
-            }
-            """
-        )
         result = session.execute(query)
-        assert result == query_data
+        assert result == query_mock
 
 
 @pytest.mark.asyncio
 async def test_integration_async_client(
-    client_params: dict, token_mock: str, query_data: dict
+    client_params: dict, token_mock: str, query: DocumentNode, query_mock: dict
 ):
     async with GraphQLClient(url=url, **client_params) as session:
-        query = gql(
-            """
-            query MOQuery {
-                users {
-                    id
-                }
-            }
-            """
-        )
         result = await session.execute(query)
-        assert result == query_data
+        assert result == query_mock
+
+
+def test_integration_persistent_client(
+    client_params: dict, token_mock: str, query: DocumentNode, query_mock: dict
+):
+    persistent_client = PersistentGraphQLClient(url=url, **client_params, sync=True)
+    result_1 = persistent_client.execute(query)
+    result_2 = persistent_client.execute(query)
+    assert result_1 == result_2 == query_mock
+    persistent_client.close()
+    assert persistent_client.transport.client is None
+
+
+@pytest.mark.asyncio
+async def test_integration_async_persistent_client(
+    client_params: dict, token_mock: str, query: DocumentNode, query_mock: dict
+):
+    persistent_client = PersistentGraphQLClient(url=url, **client_params)
+    result_1 = await persistent_client.execute(query)
+    result_2 = await persistent_client.execute(query)
+    assert result_1 == result_2 == query_mock
+    await persistent_client.aclose()
+    assert persistent_client.transport.client is None
