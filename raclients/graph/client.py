@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
+from typing import Coroutine
 from typing import Dict
 from typing import Optional
 from typing import Type
@@ -8,6 +9,8 @@ from typing import Union
 
 import httpx
 from gql import Client as GQLClient
+from gql.transport import AsyncTransport
+from graphql import DocumentNode
 
 from raclients.auth import AuthenticatedAsyncHTTPXClient
 from raclients.auth import AuthenticatedHTTPXClient
@@ -31,6 +34,8 @@ class GraphQLClient(GQLClient):
     ):
         """
         GQL Client wrapper providing defaults and automatic authentication for OS2mo.
+        If you need a client with a persistent session, for example from a FastAPI
+        application, consider the ``PersistentGraphQLClient`` subclass.
 
         Args:
             url: URL of the GraphQL server endpoint.
@@ -92,3 +97,124 @@ class GraphQLClient(GQLClient):
         )
 
         super().__init__(*args, transport=transport, **kwargs)
+
+
+class PersistentGraphQLClient(GraphQLClient):
+    """
+    GraphQLClient with persistent transport session. Since the session is shared, it is
+    the responsibility of the caller to call/await ``close()``/``aclose()`` when done.
+
+    Example:
+        Example usage in a FastAPI application. The global client is created in a module
+        called ``clients.py``::
+
+            graphql_client = PersistentGraphQLClient(
+                url=f"{settings.mo_url}/graphql",
+                client_id=settings.client_id,
+                client_secret=settings.client_secret,
+                auth_realm=settings.auth_realm,
+                auth_server=settings.auth_server,
+            )
+
+
+        Using the client from anywhere::
+
+            @app.get("/test")
+            async def test():
+                return await graphql_client.execute(...)
+
+        We must make sure to close the client on shutdown. FastAPI makes this very easy
+        using a ``shutdown`` signal in ``app.py``::
+
+            def create_app():
+                app = FastAPI()
+
+                @app.on_event("shutdown")
+                async def close_clients():
+                    await graphql_client.aclose()
+
+                return app
+    """
+
+    def execute(
+        self, document: DocumentNode, *args: Any, **kwargs: Any
+    ) -> Union[Dict, Coroutine[None, None, Dict]]:
+        """
+        Execute the provided document AST against the remote server using the transport
+        provided during init.
+
+        Either the transport is sync and we execute the query synchronously directly
+        OR the transport is async and we return an awaitable coroutine which executes
+        the query. In any case, the caller can ``execute(...)`` or ``await execute()``
+        as expected from the call context.
+
+        Args:
+            document: The GraphQL request query.
+            *args: Extra arguments passed to the transport execute method.
+            **kwargs: Extra keyword arguments passed to the transport execute method.
+
+        Returns: Dictionary (or coroutine) containing the result of the query.
+        """
+        if isinstance(self.transport, AsyncTransport):
+            return self.execute_async(document, *args, **kwargs)
+        return self.execute_sync(document, *args, **kwargs)
+
+    def execute_sync(self, document: DocumentNode, *args: Any, **kwargs: Any) -> Dict:
+        """
+        Execute the provided document AST using the open transport session.
+
+        Args:
+            document: The GraphQL request query.
+            *args: Extra arguments passed to the transport execute method.
+            **kwargs: Extra keyword arguments passed to the transport execute method.
+
+        Returns: Dictionary containing the result of the query.
+        """
+        if not hasattr(self, "session"):
+            self.open()
+        return self.session.execute(  # type: ignore[no-any-return]
+            document, *args, **kwargs
+        )
+
+    async def execute_async(
+        self, document: DocumentNode, *args: Any, **kwargs: Any
+    ) -> Dict:
+        """
+        Execute the provided document AST using the open transport session.
+
+        Args:
+            document: The GraphQL request query.
+            *args: Extra arguments passed to the transport execute method.
+            **kwargs: Extra keyword arguments passed to the transport execute method.
+
+        Returns: Dictionary containing the result of the query.
+        """
+        if not hasattr(self, "session"):
+            await self.aopen()
+        return await self.session.execute(  # type: ignore[no-any-return]
+            document, *args, **kwargs
+        )
+
+    def open(self) -> None:
+        """
+        Open the transport session.
+        """
+        self.__enter__()
+
+    async def aopen(self) -> None:
+        """
+        Open the async transport session.
+        """
+        await self.__aenter__()
+
+    def close(self) -> None:
+        """
+        Close the transport session.
+        """
+        self.__exit__()
+
+    async def aclose(self) -> None:
+        """
+        Close the async transport session.
+        """
+        await self.__aexit__(None, None, None)
