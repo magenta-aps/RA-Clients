@@ -18,6 +18,7 @@ from fastapi.encoders import jsonable_encoder
 from jsonschema import validate
 from pydantic import AnyHttpUrl
 from ramodels.lora import Facet
+from ramodels.lora import ITSystem
 from ramodels.lora import Klasse
 from ramodels.lora import Organisation
 from ramodels.lora._shared import LoraBase
@@ -30,6 +31,7 @@ class ModelClient(ModelClientBase):
         Organisation: "/organisation/organisation",
         Facet: "/klassifikation/facet",
         Klasse: "/klassifikation/klasse",
+        ITSystem: "/organisation/itsystem",
     }
 
     def __init__(

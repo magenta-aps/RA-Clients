@@ -3,6 +3,8 @@
 .coverage
 htmlcov/
 __pycache__
+.mypy_cache/
+ramodels/
 
 # Environments
 .env
