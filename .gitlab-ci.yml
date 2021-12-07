@@ -15,7 +15,13 @@ cache:
 stages:
   - lint
   - test
+  - release
   - deploy
+
+include:
+  - project: 'labs/salt-automation'
+    ref: 'master'
+    file: '/gitlab-ci-templates/common/autopub.v1.yml'
 
 # ---------------------------------------------------------------------------
 # Templates
