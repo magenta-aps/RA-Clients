@@ -20,7 +20,7 @@ from ramodels.mo._shared import MOBase
 from ramodels.mo.details import Address
 from ramodels.mo.details import Engagement
 from ramodels.mo.details import EngagementAssociation
-from ramodels.mo.details import ITSystemBinding
+from ramodels.mo.details import ITUser
 from ramodels.mo.details import Manager
 
 from raclients.modelclientbase import ModelClientBase
@@ -31,7 +31,7 @@ class ModelClient(ModelClientBase):
         OrganisationUnit: "/service/ou/create",
         Employee: "/service/e/create",
         Engagement: "/service/details/create",
-        ITSystemBinding: "/service/details/create",
+        ITUser: "/service/details/create",
         EngagementAssociation: "/service/details/create",
         Manager: "/service/details/create",
         Address: "/service/details/create",
