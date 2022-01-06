@@ -17,7 +17,7 @@ tqdm = "^4.60.0"
 pydantic = "^1.8.2"
 jsonschema = "^3.2.0"
 fastapi = "^0.70.0"
-ramodels = "^3.26.1"
+ramodels = "^4.0.1"
 ra-utils = {extras = ["headers"], version = "^0.4.0"}
 httpx = "^0.21.1"
 Authlib = "^0.15.5"
