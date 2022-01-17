@@ -3,6 +3,7 @@
 from typing import Any
 from typing import Coroutine
 from typing import Dict
+from typing import no_type_check
 from typing import Optional
 from typing import Type
 from typing import Union
@@ -15,11 +16,12 @@ from graphql import DocumentNode
 from raclients.auth import AuthenticatedAsyncHTTPXClient
 from raclients.auth import AuthenticatedHTTPXClient
 from raclients.graph.transport import AsyncHTTPXTransport
-from raclients.graph.transport import BaseHTTPXTransport
 from raclients.graph.transport import HTTPXTransport
 
 
 class GraphQLClient(GQLClient):
+    transport: Union[HTTPXTransport, AsyncHTTPXTransport]
+
     def __init__(
         self,
         url: str,
@@ -74,7 +76,7 @@ class GraphQLClient(GQLClient):
                 with GraphQLClient(sync=True) as session:
                     result = session.execute(query)
         """
-        transport_cls: Type[BaseHTTPXTransport]  # you happy now, mypy?
+        transport_cls: Type[Union[HTTPXTransport, AsyncHTTPXTransport]]
         client_cls: Type[Union[httpx.Client, httpx.AsyncClient]]
 
         if sync:
@@ -96,7 +98,7 @@ class GraphQLClient(GQLClient):
             ),
         )
 
-        super().__init__(*args, transport=transport, **kwargs)
+        super().__init__(*args, transport=transport, **kwargs)  # type: ignore[misc]
 
 
 class PersistentGraphQLClient(GraphQLClient):
@@ -136,6 +138,7 @@ class PersistentGraphQLClient(GraphQLClient):
                 return app
     """
 
+    @no_type_check
     def execute(
         self, document: DocumentNode, *args: Any, **kwargs: Any
     ) -> Union[Dict, Coroutine[None, None, Dict]]:
@@ -143,8 +146,8 @@ class PersistentGraphQLClient(GraphQLClient):
         Execute the provided document AST against the remote server using the transport
         provided during init.
 
-        Either the transport is sync and we execute the query synchronously directly
-        OR the transport is async and we return an awaitable coroutine which executes
+        Either the transport is sync, and we execute the query synchronously directly
+        OR the transport is async, and we return an awaitable coroutine which executes
         the query. In any case, the caller can ``execute(...)`` or ``await execute()``
         as expected from the call context.
 
@@ -172,7 +175,7 @@ class PersistentGraphQLClient(GraphQLClient):
         """
         if not hasattr(self, "session"):
             self.open()
-        return self.session.execute(  # type: ignore[no-any-return]
+        return self.session.execute(  # type: ignore[return-value]
             document, *args, **kwargs
         )
 

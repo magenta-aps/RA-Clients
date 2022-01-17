@@ -34,7 +34,7 @@ def query_mock(token_mock: str, respx_mock: MockRouter) -> dict:
     data = {"a": 1}
     respx_mock.post(
         url=url,
-        json={"query": "query MOQuery {\n  users {\n    id\n  }\n}\n"},
+        json={"query": "query MOQuery {\n  users {\n    id\n  }\n}"},
         headers={"Authorization": f"Bearer {token_mock}"},
     ).mock(
         return_value=httpx.Response(200, json={"data": data}),

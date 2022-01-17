@@ -115,7 +115,7 @@ def test_construct_payload(document: DocumentNode):
     actual = BaseHTTPXTransport._construct_payload(
         document=document,
     )
-    expected = {"query": "query MOQuery {\n  users {\n    id\n  }\n}\n"}
+    expected = {"query": "query MOQuery {\n  users {\n    id\n  }\n}"}
     assert actual == expected
 
 
@@ -128,7 +128,7 @@ def test_construct_payload_variable_values(document: DocumentNode):
         ),
     )
     expected = {
-        "query": "query MOQuery {\n  users {\n    id\n  }\n}\n",
+        "query": "query MOQuery {\n  users {\n    id\n  }\n}",
         "variables": {
             "a": 1,
             "b": "x",
@@ -143,7 +143,7 @@ def test_construct_payload_operation_name(document: DocumentNode):
         operation_name="please, thank you",
     )
     expected = {
-        "query": "query MOQuery {\n  users {\n    id\n  }\n}\n",
+        "query": "query MOQuery {\n  users {\n    id\n  }\n}",
         "operationName": "please, thank you",
     }
     assert actual == expected
@@ -233,7 +233,7 @@ def test_integration_transport_execute(
 ):
     respx_mock.post(
         url=url,
-        json={"query": "query MOQuery {\n  users {\n    id\n  }\n}\n"},
+        json={"query": "query MOQuery {\n  users {\n    id\n  }\n}"},
     ).mock(
         return_value=httpx.Response(
             200,
@@ -260,7 +260,7 @@ async def test_integration_async_transport_execute(
 ):
     respx_mock.post(
         url=url,
-        json={"query": "query MOQuery {\n  users {\n    id\n  }\n}\n"},
+        json={"query": "query MOQuery {\n  users {\n    id\n  }\n}"},
     ).mock(
         return_value=httpx.Response(
             200,
@@ -286,7 +286,7 @@ def test_integration_transport_execute_error(
 ):
     respx_mock.post(
         url=url,
-        json={"query": "query MOQuery {\n  users {\n    id\n  }\n}\n"},
+        json={"query": "query MOQuery {\n  users {\n    id\n  }\n}"},
     ).mock(
         return_value=httpx.Response(
             200,
@@ -311,5 +311,5 @@ def test_integration_transport_execute_error(
 
     error = result.errors[0]
     assert error.message == "Cannot query field 'a' on type 'Query'."
-    assert error.source == Source(body="query MOQuery {\n  users {\n    id\n  }\n}\n")
+    assert error.source == Source(body="query MOQuery {\n  users {\n    id\n  }\n}")
     assert error.locations == [SourceLocation(line=2, column=3)]

@@ -183,9 +183,11 @@ class HTTPXTransport(BaseHTTPXTransport[httpx.Client], Transport):
     def execute(
         self,
         document: DocumentNode,
+        *args: Any,
         variable_values: Optional[Dict[str, Any]] = None,
         operation_name: Optional[str] = None,
         extra_args: Dict[str, Any] = None,
+        **kwargs: Any,
     ) -> ExecutionResult:
         """
         Execute the provided document AST against the configured remote server using the
