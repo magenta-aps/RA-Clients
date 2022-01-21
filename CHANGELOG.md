@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.12.0 - 2022-01-21
+-------------------
+
+[#47680] Add support for Association, Leave, Role in ModelClient
+
 0.11.4 - 2022-01-18
 -------------------
 
