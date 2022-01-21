@@ -23,6 +23,7 @@ httpx = "^0.21.3"
 Authlib = "^0.15.5"
 gql = {allow-prereleases = true, version = "3.0.0rc1"}
 structlog = "^21.2.0"
+tenacity = "^8.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"

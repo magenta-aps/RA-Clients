@@ -10,6 +10,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+import aiohttp
 from aiohttp import ClientResponseError
 from fastapi.encoders import jsonable_encoder
 from pydantic import AnyHttpUrl
@@ -25,8 +26,15 @@ from ramodels.mo.details import ITUser
 from ramodels.mo.details import Leave
 from ramodels.mo.details import Manager
 from ramodels.mo.details import Role
+from structlog import get_logger
+from tenacity import retry
+from tenacity import retry_if_exception_type
+from tenacity import stop_after_attempt
+from tenacity import wait_random_exponential
 
 from raclients.modelclientbase import ModelClientBase
+
+logger = get_logger()
 
 
 class ModelClient(ModelClientBase):
@@ -62,6 +70,13 @@ class ModelClient(ModelClientBase):
     def _get_path_map(self) -> Dict[MOBase, str]:
         return self.__mo_path_map
 
+    @retry(
+        retry=retry_if_exception_type(aiohttp.ClientError),
+        reraise=True,
+        wait=wait_random_exponential(multiplier=2, max=30),
+        stop=stop_after_attempt(3),
+        after=lambda rs: logger.warning(f"Upload attempt {rs.attempt_number} failed."),
+    )
     async def _post_single_to_backend(self, current_type: MOBase, obj: MOBase) -> Any:
         session = await self._verify_session()
         # Note that we additionally format the object's fields onto the path mapping to
