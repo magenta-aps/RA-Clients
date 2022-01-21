@@ -78,7 +78,7 @@ class ModelClientBase(ABC):
         session_factory: Callable[
             [], Awaitable[ClientSession]
         ] = common_session_factory(),
-        chunk_size: int = 100,
+        chunk_size: int = 10,
     ):
         # connection logic
         self._base_url = base_url
