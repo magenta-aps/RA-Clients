@@ -18,10 +18,13 @@ from ramodels.mo import FacetClass
 from ramodels.mo import OrganisationUnit
 from ramodels.mo._shared import MOBase
 from ramodels.mo.details import Address
+from ramodels.mo.details import Association
 from ramodels.mo.details import Engagement
 from ramodels.mo.details import EngagementAssociation
 from ramodels.mo.details import ITUser
+from ramodels.mo.details import Leave
 from ramodels.mo.details import Manager
+from ramodels.mo.details import Role
 
 from raclients.modelclientbase import ModelClientBase
 
@@ -36,6 +39,9 @@ class ModelClient(ModelClientBase):
         Manager: "/service/details/create",
         Address: "/service/details/create",
         FacetClass: "/service/f/{facet_uuid}/",
+        Association: "/service/details/create",
+        Leave: "/service/details/create",
+        Role: "/service/details/create",
     }
 
     def __init__(
