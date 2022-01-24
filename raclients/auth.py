@@ -98,16 +98,16 @@ class AuthenticatedHTTPXClient(BaseAuthenticatedClient, HTTPXOAuth2Client):
     """
     Synchronous HTTPX Client that automatically authenticates requests.
 
-    Example usage:
-    ```
-    with AuthenticatedHTTPXClient(
-        client_id="AzureDiamond",
-        client_secret="hunter2",
-        auth_server=parse_obj_as(AnyHttpUrl, "http://keycloak.example.org/auth"),
-        auth_realm="mordor",
-    ) as client:
-        r = client.get("https://example.org")
-    ```
+    Example usage::
+
+        with AuthenticatedHTTPXClient(
+            client_id="AzureDiamond",
+            client_secret="hunter2",
+            auth_server=parse_obj_as(AnyHttpUrl, "http://keycloak.example.org/auth"),
+            auth_realm="mordor",
+        ) as client:
+            r = client.get("https://example.org")
+
     """
 
     def request(
@@ -140,16 +140,16 @@ class AuthenticatedAsyncHTTPXClient(BaseAuthenticatedClient, AsyncHTTPXOAuth2Cli
     """
     Asynchronous HTTPX Client that automatically authenticates requests.
 
-    Example usage:
-    ```
-    async with AuthenticatedAsyncHTTPXClient(
-        client_id="AzureDiamond",
-        client_secret="hunter2",
-        auth_server=parse_obj_as(AnyHttpUrl, "http://keycloak.example.org/auth"),
-        auth_realm="mordor",
-    ) as client:
-        r = await client.get("https://example.org")
-    ```
+    Example usage::
+
+        async with AuthenticatedAsyncHTTPXClient(
+            client_id="AzureDiamond",
+            client_secret="hunter2",
+            auth_server=parse_obj_as(AnyHttpUrl, "http://keycloak.example.org/auth"),
+            auth_realm="mordor",
+        ) as client:
+            r = await client.get("https://example.org")
+
     """
 
     async def request(
