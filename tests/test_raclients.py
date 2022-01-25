@@ -12,13 +12,8 @@ from pydantic import AnyHttpUrl
 from ramodels.mo import Employee
 from ramodels.mo import FacetClass
 
-from raclients import __version__
 from raclients.mo import ModelClient
 from raclients.modelclientbase import common_session_factory
-
-
-def test_version():
-    assert __version__ == "0.10.2"
 
 
 @pytest.mark.asyncio
