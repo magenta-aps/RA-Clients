@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+1.0.0 - 2022-01-25
+------------------
+
+[#48131] Refactor ModelClients
+[#47680] Reintroduce ModelClient retrying
+[#47680] Reduce default ModelClient chunk size from 100 to 10
+
 0.12.0 - 2022-01-21
 -------------------
 
