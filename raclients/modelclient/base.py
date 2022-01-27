@@ -5,6 +5,7 @@
 # --------------------------------------------------------------------------------------
 import asyncio
 import itertools
+from functools import partial
 from typing import Any
 from typing import AsyncIterator
 from typing import Dict
@@ -54,10 +55,10 @@ class ModelClientBase(AuthenticatedAsyncHTTPXClient, Generic[ModelBase]):
         super().__init__(*args, **kwargs)
         self.chunk_size = chunk_size
 
-    def get_object_url(self, obj: ModelBase) -> str:
+    def get_object_url(self, obj: ModelBase, *args: Any, **kwargs: Any) -> str:
         return self.path_map[type(obj)]
 
-    def get_object_json(self, obj: ModelBase) -> Any:
+    def get_object_json(self, obj: ModelBase, *args: Any, **kwargs: Any) -> Any:
         return jsonable_encoder(obj)
 
     @retry(
@@ -67,11 +68,11 @@ class ModelClientBase(AuthenticatedAsyncHTTPXClient, Generic[ModelBase]):
         stop=stop_after_attempt(3),
         after=lambda rs: logger.warning(f"Upload failed ({rs.attempt_number}/3)."),
     )
-    async def upload_object(self, obj: ModelBase) -> Any:
+    async def upload_object(self, obj: ModelBase, *args: Any, **kwargs: Any) -> Any:
         response = await self.request(
             self.upload_http_method,
-            self.get_object_url(obj),
-            json=self.get_object_json(obj),
+            self.get_object_url(obj, *args, **kwargs),
+            json=self.get_object_json(obj, *args, **kwargs),
         )
         response_json = response.json()
         try:
@@ -86,15 +87,20 @@ class ModelClientBase(AuthenticatedAsyncHTTPXClient, Generic[ModelBase]):
             raise error
         return response_json
 
-    async def upload_lazy(self, objs: Iterable[ModelBase]) -> AsyncIterator[Any]:
+    async def upload_lazy(
+        self, objs: Iterable[ModelBase], *args: Any, **kwargs: Any
+    ) -> AsyncIterator[Any]:
         objs = list(objs)  # len() is unfortunately needed for proper progress bar
         with tqdm(total=len(objs), unit="object") as progress_bar:
             for object_type, group in itertools.groupby(objs, key=type):
                 progress_bar.set_description(object_type.__name__)
                 for chunk in more_itertools.chunked(group, n=self.chunk_size):
-                    for task in asyncio.as_completed(map(self.upload_object, chunk)):
+                    tasks = map(partial(self.upload_object, *args, **kwargs), chunk)
+                    for task in asyncio.as_completed(tasks):
                         yield await task
                         progress_bar.update()
 
-    async def upload(self, objs: Iterable[ModelBase]) -> List[Any]:
-        return [x async for x in self.upload_lazy(objs)]
+    async def upload(
+        self, objs: Iterable[ModelBase], *args: Any, **kwargs: Any
+    ) -> List[Any]:
+        return [x async for x in self.upload_lazy(objs, *args, **kwargs)]
