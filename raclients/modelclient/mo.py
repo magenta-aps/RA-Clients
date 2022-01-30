@@ -7,6 +7,7 @@ from typing import Any
 from typing import Iterable
 from typing import List
 
+from fastapi.encoders import jsonable_encoder
 from ramodels.mo import Employee
 from ramodels.mo import FacetClass
 from ramodels.mo import OrganisationUnit
@@ -87,11 +88,15 @@ class ModelClient(ModelClientBase[MOBase]):
     def get_object_json(
         self, obj: ModelBase, *args: Any, edit: bool = False, **kwargs: Any
     ) -> Any:
+        # 'jsonable_encoder' is used directly on the obj, as 'exclude_defaults' doesn't
+        # work when the object is nested within a dict.
+        # TODO: Ideally we'd want to use 'exclude_unset' instead of 'exclude_defaults',
+        #  but it doesn't seem to work properly with our models.
         if edit:
             obj = {
                 "uuid": obj.uuid,
                 "type": obj.type_,
-                "data": obj,
+                "data": jsonable_encoder(obj, exclude_defaults=True),
             }
         return super().get_object_json(obj, *args, **kwargs)
 
