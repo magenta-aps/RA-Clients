@@ -80,6 +80,34 @@ async def test_uuid_request(mo_model_client: MOModelClient, respx_mock: MockRout
 
 
 @pytest.mark.asyncio
+async def test_edit_request(mo_model_client: MOModelClient, respx_mock: MockRouter):
+    uuid = uuid4()
+    respx_mock.post(
+        "http://mo.example.org/service/details/edit?force=0",
+        json__uuid=str(uuid),
+        json__type="employee",
+        json__data__uuid=str(uuid),
+    ).mock(
+        return_value=httpx.Response(
+            200,
+            json={"any": "thing"},
+        )
+    )
+
+    await mo_model_client.edit(
+        [
+            Employee(
+                uuid=uuid,
+                givenname="given name",
+                surname="surname",
+                cpr_no=None,
+                seniority=datetime(2000, 1, 1),
+            )
+        ]
+    )
+
+
+@pytest.mark.asyncio
 async def test_fail_request(mo_model_client: MOModelClient, respx_mock: MockRouter):
     err_response = {"description": "big error"}
     respx_mock.post("http://mo.example.org/service/e/create?force=0",).mock(

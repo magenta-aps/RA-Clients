@@ -39,10 +39,10 @@ class ModelClient(ModelClientBase[LoraBase]):
         Organisation: "/organisation/organisation",
     }
 
-    def get_object_url(self, obj: ModelBase) -> str:
+    def get_object_url(self, obj: ModelBase, *args: Any, **kwargs: Any) -> str:
         return "{}/{}".format(self.path_map[type(obj)], obj.uuid)
 
-    def get_object_json(self, obj: ModelBase) -> Any:
+    def get_object_json(self, obj: ModelBase, *args: Any, **kwargs: Any) -> Any:
         # TODO: Pending https://github.com/samuelcolvin/pydantic/pull/2231. For now,
         #  UUID is included in the model, and has to be excluded when converted to JSON.
         return jsonable_encoder(
