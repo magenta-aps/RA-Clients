@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+1.2.0 - 2022-02-10
+------------------
+
+[#48565] Add support for KLEWrite in MOModelClient
+
 1.1.0 - 2022-01-31
 ------------------
 
