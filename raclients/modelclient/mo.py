@@ -17,7 +17,7 @@ from ramodels.mo.details import Association
 from ramodels.mo.details import Engagement
 from ramodels.mo.details import EngagementAssociation
 from ramodels.mo.details import ITUser
-from ramodels.mo.details import KLEWrite
+from ramodels.mo.details import KLE
 from ramodels.mo.details import Leave
 from ramodels.mo.details import Manager
 from ramodels.mo.details import Role
@@ -36,7 +36,7 @@ class ModelClient(ModelClientBase[MOBase]):
         EngagementAssociation: "/service/details/create",
         FacetClass: "/service/f/{facet_uuid}/",
         ITUser: "/service/details/create",
-        KLEWrite: "/service/details/create",
+        KLE: "/service/details/create",
         Leave: "/service/details/create",
         Manager: "/service/details/create",
         OrganisationUnit: "/service/ou/create",
@@ -49,7 +49,7 @@ class ModelClient(ModelClientBase[MOBase]):
         Engagement: "/service/details/edit",
         FacetClass: "/service/f/{facet_uuid}/",
         ITUser: "/service/details/edit",
-        KLEWrite: "/service/details/edit",
+        KLE: "/service/details/edit",
         Leave: "/service/details/edit",
         Manager: "/service/details/edit",
         OrganisationUnit: "/service/details/edit",
