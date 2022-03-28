@@ -10,6 +10,8 @@ from typing import Union
 
 import httpx
 from gql import Client as GQLClient
+from gql.client import AsyncClientSession
+from gql.client import SyncClientSession
 from gql.transport import AsyncTransport
 from graphql import DocumentNode
 
@@ -162,62 +164,34 @@ class PersistentGraphQLClient(GraphQLClient):
             return self.execute_async(document, *args, **kwargs)
         return self.execute_sync(document, *args, **kwargs)
 
-    def execute_sync(self, document: DocumentNode, *args: Any, **kwargs: Any) -> Dict:
-        """
-        Execute the provided document AST using the open transport session.
-
-        Args:
-            document: The GraphQL request query.
-            *args: Extra arguments passed to the transport execute method.
-            **kwargs: Extra keyword arguments passed to the transport execute method.
-
-        Returns: Dictionary containing the result of the query.
-        """
+    def __enter__(self) -> SyncClientSession:
+        """Persist the GraphQL client session by only opening it once."""
         if not hasattr(self, "session"):
-            self.open()
-        return self.session.execute(  # type: ignore[return-value]
-            document, *args, **kwargs
-        )
+            super().__enter__()
+        return self.session  # type: ignore
 
-    async def execute_async(
-        self, document: DocumentNode, *args: Any, **kwargs: Any
-    ) -> Dict:
-        """
-        Execute the provided document AST using the open transport session.
-
-        Args:
-            document: The GraphQL request query.
-            *args: Extra arguments passed to the transport execute method.
-            **kwargs: Extra keyword arguments passed to the transport execute method.
-
-        Returns: Dictionary containing the result of the query.
-        """
+    async def __aenter__(self) -> AsyncClientSession:
+        """Persist the GraphQL client session by only opening it once."""
         if not hasattr(self, "session"):
-            await self.aopen()
-        return await self.session.execute(  # type: ignore[no-any-return]
-            document, *args, **kwargs
-        )
+            await super().__aenter__()
+        return self.session  # type: ignore
 
-    def open(self) -> None:
-        """
-        Open the transport session.
-        """
-        self.__enter__()
+    def __exit__(self, *args: Any) -> None:
+        """We're a persistent client: Don't close the transport when exiting."""
+        pass
 
-    async def aopen(self) -> None:
-        """
-        Open the async transport session.
-        """
-        await self.__aenter__()
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        """We're a persistent client: Don't close the transport when exiting."""
+        pass
 
     def close(self) -> None:
         """
         Close the transport session.
         """
-        self.__exit__()
+        super().__exit__()
 
     async def aclose(self) -> None:
         """
         Close the async transport session.
         """
-        await self.__aexit__(None, None, None)
+        await super().__aexit__(None, None, None)
