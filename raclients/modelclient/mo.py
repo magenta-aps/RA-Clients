@@ -4,8 +4,11 @@
 # SPDX-License-Identifier: MPL-2.0
 # --------------------------------------------------------------------------------------
 from typing import Any
+from typing import Dict
 from typing import Iterable
 from typing import List
+from typing import Type
+from typing import Union
 
 from fastapi.encoders import jsonable_encoder
 from ramodels.mo import Employee
@@ -22,13 +25,12 @@ from ramodels.mo.details import Leave
 from ramodels.mo.details import Manager
 from ramodels.mo.details import Role
 
-from raclients.modelclient.base import ModelBase
 from raclients.modelclient.base import ModelClientBase
 
 
 class ModelClient(ModelClientBase[MOBase]):
     upload_http_method = "POST"
-    create_path_map = {
+    create_path_map: Dict[Type[MOBase], str] = {
         Address: "/service/details/create",
         Association: "/service/details/create",
         Employee: "/service/e/create",
@@ -42,7 +44,7 @@ class ModelClient(ModelClientBase[MOBase]):
         OrganisationUnit: "/service/ou/create",
         Role: "/service/details/create",
     }
-    edit_path_map = {
+    edit_path_map: Dict[Type[MOBase], str] = {
         Address: "/service/details/edit",
         Association: "/service/details/edit",
         Employee: "/service/details/edit",
@@ -79,7 +81,7 @@ class ModelClient(ModelClientBase[MOBase]):
         self.force = force
 
     def get_object_url(
-        self, obj: ModelBase, *args: Any, edit: bool = False, **kwargs: Any
+        self, obj: MOBase, *args: Any, edit: bool = False, **kwargs: Any
     ) -> str:
         # Note that we additionally format the object's fields onto the path mapping to
         # support schemes such as /service/f/{facet_uuid}/, where facet_uuid is
@@ -89,7 +91,7 @@ class ModelClient(ModelClientBase[MOBase]):
         return f"{path}?force={int(self.force)}"
 
     def get_object_json(
-        self, obj: ModelBase, *args: Any, edit: bool = False, **kwargs: Any
+        self, obj: Union[MOBase, Any], *args: Any, edit: bool = False, **kwargs: Any
     ) -> Any:
         # 'jsonable_encoder' is used directly on the obj, as 'exclude_defaults' doesn't
         # work when the object is nested within a dict.
@@ -98,12 +100,12 @@ class ModelClient(ModelClientBase[MOBase]):
         if edit:
             obj = {
                 "uuid": obj.uuid,
-                "type": obj.type_,
+                "type": obj.type_,  # type: ignore[union-attr]
                 "data": jsonable_encoder(obj, exclude_defaults=True),
             }
         return super().get_object_json(obj, *args, **kwargs)
 
     async def edit(
-        self, objs: Iterable[ModelBase], *args: Any, **kwargs: Any
+        self, objs: Iterable[MOBase], *args: Any, **kwargs: Any
     ) -> List[Any]:
         return await self.upload(objs, *args, edit=True, **kwargs)

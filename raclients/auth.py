@@ -67,7 +67,7 @@ class BaseAuthenticatedClient(OAuth2Client):
         self,
         url: str,
         withhold_token: bool = False,
-        auth: AuthTypes = USE_CLIENT_DEFAULT,  # type: ignore[assignment]
+        auth: Optional[AuthTypes] = USE_CLIENT_DEFAULT,  # type: ignore[assignment]
     ) -> bool:
         """
         Determine if we should fetch a token. Authlib automatically _refreshes_ tokens,
