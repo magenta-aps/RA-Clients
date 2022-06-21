@@ -14,6 +14,7 @@ from typing import Iterable
 from typing import List
 from typing import Type
 from typing import TypeVar
+from typing import Union
 
 import httpx
 import more_itertools
@@ -58,7 +59,9 @@ class ModelClientBase(AuthenticatedAsyncHTTPXClient, Generic[ModelBase]):
     def get_object_url(self, obj: ModelBase, *args: Any, **kwargs: Any) -> str:
         return self.path_map[type(obj)]
 
-    def get_object_json(self, obj: ModelBase, *args: Any, **kwargs: Any) -> Any:
+    def get_object_json(
+        self, obj: Union[ModelBase, Any], *args: Any, **kwargs: Any
+    ) -> Any:
         return jsonable_encoder(obj)
 
     @retry(
