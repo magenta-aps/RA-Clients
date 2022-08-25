@@ -25,6 +25,7 @@ from ramodels.mo.details import Leave
 from ramodels.mo.details import Manager
 from ramodels.mo.details import Role
 
+from raclients.auth import AuthenticatedAsyncHTTPXClient
 from raclients.modelclient.base import ModelClientBase
 
 
@@ -57,6 +58,7 @@ class ModelClient(ModelClientBase[MOBase]):
         OrganisationUnit: "/service/details/edit",
         Role: "/service/details/edit",
     }
+    async_httpx_client_class = AuthenticatedAsyncHTTPXClient
 
     def __init__(self, force: bool = False, *args: Any, **kwargs: Any):
         """MO ModelClient.

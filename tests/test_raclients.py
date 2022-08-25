@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: MPL-2.0
 # --------------------------------------------------------------------------------------
 from datetime import datetime
-from typing import AsyncIterator
 from uuid import uuid4
 
 import httpx
@@ -17,12 +16,8 @@ from raclients.modelclient.mo import ModelClient as MOModelClient
 
 
 @pytest.fixture
-async def mo_model_client(
-    client_params: dict, token_mock: str
-) -> AsyncIterator[MOModelClient]:
-    model_client = MOModelClient(base_url="http://mo.example.org", **client_params)
-    async with model_client as client:
-        yield client
+def mo_model_client(client_params: dict, token_mock: str) -> MOModelClient:
+    return MOModelClient(base_url="http://mo.example.org", **client_params)
 
 
 @pytest.mark.asyncio
