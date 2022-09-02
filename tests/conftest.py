@@ -6,6 +6,8 @@ from pydantic import AnyHttpUrl
 from pydantic import parse_obj_as
 from respx import MockRouter
 
+pytestmark = pytest.mark.respx(assert_all_called=True)
+
 
 @pytest.fixture
 def client_params() -> dict:

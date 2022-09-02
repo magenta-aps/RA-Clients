@@ -8,7 +8,9 @@ from uuid import uuid4
 
 import httpx
 import pytest
-from httpx import AsyncClient
+from httpx import Request
+from httpx import Response
+from ramodels.lora import Facet
 from ramodels.mo import Employee
 from ramodels.mo import FacetClass
 from respx import MockRouter
@@ -146,12 +148,26 @@ async def test_fail_request(mo_model_client: MOModelClient, respx_mock: MockRout
         )
 
 
-def test_lora_model_client_does_not_use_auth():
-    # We would really like to test that the "Authorization" header is not
-    # set when the "await self.async_httpx_client.request(...)" is executed
-    # in the "upload_object" method in ModelClientBase class in base.py,
-    # but this seems to be hard to do, so we will have (for now) to settle
-    # with this test instead
-
+@pytest.mark.asyncio
+async def test_lora_model_client_does_not_use_auth(respx_mock: MockRouter):
     lora_model_client = LoRaModelClient(base_url="http://lora.example.org")
-    assert isinstance(lora_model_client.async_httpx_client, AsyncClient)
+
+    facet_uuid = uuid4()
+
+    def callback(request: Request) -> Response:
+        assert "authorization" not in request.headers
+        return Response(200, json={})
+
+    respx_mock.put(f"http://lora.example.org/klassifikation/facet/{facet_uuid}").mock(
+        side_effect=callback
+    )
+
+    await lora_model_client.upload(
+        [
+            Facet.from_simplified_fields(
+                uuid=facet_uuid,
+                user_key="foo",
+                organisation_uuid=uuid4(),
+            )
+        ]
+    )
