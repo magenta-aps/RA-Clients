@@ -43,7 +43,7 @@ workflow:
 
 .lint-template: &lint
   <<: *install-deps
-  image: python:3.8
+  image: python:3.10
   stage: lint
 
 .test-template: &test # Coverage needed too

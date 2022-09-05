@@ -108,3 +108,10 @@ class ModelClientBase(Generic[ModelBase]):
         self, objs: Iterable[ModelBase], *args: Any, **kwargs: Any
     ) -> List[Any]:
         return [x async for x in self.upload_lazy(objs, *args, **kwargs)]
+
+    async def __aenter__(self):  # type: ignore
+        # TODO: fix return type to Self when we get to a Python version >=3.11
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore
+        await self.async_httpx_client.aclose()
