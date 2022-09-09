@@ -16,9 +16,10 @@ from typing import Type
 from typing import TypeVar
 from typing import Union
 
-import httpx
 import more_itertools
 from fastapi.encoders import jsonable_encoder
+from httpx import AsyncClient
+from httpx import HTTPStatusError
 from ramodels.lora import LoraBase
 from ramodels.mo import MOBase
 from structlog import get_logger
@@ -27,8 +28,6 @@ from tenacity import retry_if_exception_type
 from tenacity import stop_after_attempt
 from tenacity import wait_random_exponential
 from tqdm import tqdm
-
-from raclients.auth import AuthenticatedAsyncHTTPXClient
 
 logger = get_logger()
 
@@ -40,9 +39,10 @@ class ModelClientException(Exception):
 ModelBase = TypeVar("ModelBase", MOBase, LoraBase)
 
 
-class ModelClientBase(AuthenticatedAsyncHTTPXClient, Generic[ModelBase]):
+class ModelClientBase(Generic[ModelBase]):
     upload_http_method: str
     path_map: Dict[Type[ModelBase], str]
+    async_httpx_client_class: Type[AsyncClient]
 
     def __init__(self, *args: Any, chunk_size: int = 10, **kwargs: Any) -> None:
         """Base ModelClient.
@@ -53,7 +53,8 @@ class ModelClientBase(AuthenticatedAsyncHTTPXClient, Generic[ModelBase]):
              in parallel.
             **kwargs: Keyword arguments passed through to AuthenticatedAsyncHTTPXClient.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__()
+        self.async_httpx_client = self.async_httpx_client_class(*args, **kwargs)
         self.chunk_size = chunk_size
 
     def get_object_url(self, obj: ModelBase, *args: Any, **kwargs: Any) -> str:
@@ -65,14 +66,14 @@ class ModelClientBase(AuthenticatedAsyncHTTPXClient, Generic[ModelBase]):
         return jsonable_encoder(obj)
 
     @retry(
-        retry=retry_if_exception_type(httpx.HTTPStatusError),
+        retry=retry_if_exception_type(HTTPStatusError),
         reraise=True,
         wait=wait_random_exponential(multiplier=2, max=30),
         stop=stop_after_attempt(3),
         after=lambda rs: logger.warning(f"Upload failed ({rs.attempt_number}/3)."),
     )
     async def upload_object(self, obj: ModelBase, *args: Any, **kwargs: Any) -> Any:
-        response = await self.request(
+        response = await self.async_httpx_client.request(
             self.upload_http_method,
             self.get_object_url(obj, *args, **kwargs),
             json=self.get_object_json(obj, *args, **kwargs),
@@ -80,9 +81,9 @@ class ModelClientBase(AuthenticatedAsyncHTTPXClient, Generic[ModelBase]):
         response_json = response.json()
         try:
             response.raise_for_status()
-        except httpx.HTTPStatusError as error:
+        except HTTPStatusError as error:
             if "description" in response_json:
-                raise httpx.HTTPStatusError(
+                raise HTTPStatusError(
                     message=response_json["description"],
                     request=error.request,
                     response=error.response,
@@ -107,3 +108,10 @@ class ModelClientBase(AuthenticatedAsyncHTTPXClient, Generic[ModelBase]):
         self, objs: Iterable[ModelBase], *args: Any, **kwargs: Any
     ) -> List[Any]:
         return [x async for x in self.upload_lazy(objs, *args, **kwargs)]
+
+    async def __aenter__(self):  # type: ignore
+        # TODO: fix return type to Self when we get to a Python version >=3.11
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore
+        await self.async_httpx_client.aclose()

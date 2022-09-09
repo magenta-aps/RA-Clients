@@ -8,6 +8,7 @@ from typing import Dict
 from typing import Type
 
 from fastapi.encoders import jsonable_encoder
+from httpx import AsyncClient
 from ramodels.lora import Facet
 from ramodels.lora import ITSystem
 from ramodels.lora import Klasse
@@ -39,6 +40,7 @@ class ModelClient(ModelClientBase[LoraBase]):
         Klasse: "/klassifikation/klasse",
         Organisation: "/organisation/organisation",
     }
+    async_httpx_client_class = AsyncClient
 
     def get_object_url(self, obj: LoraBase, *args: Any, **kwargs: Any) -> str:
         return "{}/{}".format(self.path_map[type(obj)], obj.uuid)
