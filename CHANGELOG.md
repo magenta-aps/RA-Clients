@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+1.3.0 - 2022-09-09
+------------------
+
+[#51982] Disable authentication for LoRa ModelClient
+
 1.2.6 - 2022-07-19
 ------------------
 
