@@ -11,8 +11,8 @@ from typing import Type
 from typing import Union
 
 from fastapi.encoders import jsonable_encoder
+from ramodels.mo import ClassWrite
 from ramodels.mo import Employee
-from ramodels.mo import FacetClass
 from ramodels.mo import OrganisationUnit
 from ramodels.mo._shared import MOBase
 from ramodels.mo.details import Address
@@ -37,7 +37,7 @@ class ModelClient(ModelClientBase[MOBase]):
         Employee: "/service/e/create",
         Engagement: "/service/details/create",
         EngagementAssociation: "/service/details/create",
-        FacetClass: "/service/f/{facet_uuid}/",
+        ClassWrite: "/service/f/{facet_uuid}/",
         ITUser: "/service/details/create",
         KLE: "/service/details/create",
         Leave: "/service/details/create",
@@ -50,7 +50,7 @@ class ModelClient(ModelClientBase[MOBase]):
         Association: "/service/details/edit",
         Employee: "/service/details/edit",
         Engagement: "/service/details/edit",
-        FacetClass: "/service/f/{facet_uuid}/",
+        ClassWrite: "/service/f/{facet_uuid}/",
         ITUser: "/service/details/edit",
         KLE: "/service/details/edit",
         Leave: "/service/details/edit",

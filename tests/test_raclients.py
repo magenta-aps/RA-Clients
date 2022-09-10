@@ -12,8 +12,8 @@ import pytest
 from httpx import Request
 from httpx import Response
 from ramodels.lora import Facet
+from ramodels.mo import ClassWrite
 from ramodels.mo import Employee
-from ramodels.mo import FacetClass
 from respx import MockRouter
 
 from raclients.modelclient.lora import ModelClient as LoRaModelClient
@@ -70,7 +70,7 @@ async def test_uuid_request(mo_model_client: MOModelClient, respx_mock: MockRout
 
     resp = await mo_model_client.upload(
         [
-            FacetClass(
+            ClassWrite(
                 facet_uuid="00000000-0000-0000-0000-000000000000",
                 name="My Awesome Class",
                 user_key="MyClass",
