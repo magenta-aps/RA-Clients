@@ -11,27 +11,40 @@ keywords = ["os2mo", "lora"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-more-itertools = "^8.13.0"
-tqdm = "^4.64.0"
-pydantic = "^1.9.1"
+more-itertools = "^8.14.0"
+tqdm = "^4.64.1"
+pydantic = "^1.10.2"
 fastapi = "^0.78.0"
-ramodels = "11.0.2"
+ramodels = "^11.3.0"
 httpx = "^0.23.0"
-Authlib = "^1.0.1"
-gql = "^3.3.0"
-structlog = "^21.5.0"
+Authlib = "^1.1.0"
+gql = "^3.4.0"
+structlog = "^22.1.0"
 tenacity = "^8.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
 pytest-asyncio = "^0.18.3"
-black = "^22.3.0"
-flake8 = "^4.0.1"
-mypy = "^0.961"
-reorder-python-imports = "^3.1.0"
 pre-commit = "^2.19.0"
 respx = "^0.19.2"
 pytest-cov = "^3.0.0"
+
+[tool.pytest.ini_options]
+asyncio_mode="auto"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = "True"
+warn_unused_configs = "True"
+check_untyped_defs = "True"
+disallow_untyped_defs = "True"
+plugins = "pydantic.mypy"
+
+[tool.flake8]
+max-line-length = 88
+exclude = [
+".git", "__pycache__", ".mypy_cache", ".pytest_cache", ".venv", ".gitlab"
+]
 
 [tool.autopub]
 git-username = "MagentaBot"
