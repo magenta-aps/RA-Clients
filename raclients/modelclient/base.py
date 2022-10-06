@@ -20,7 +20,6 @@ import more_itertools
 from fastapi.encoders import jsonable_encoder
 from httpx import AsyncClient
 from httpx import HTTPStatusError
-from httpx import Response
 from ramodels.lora import LoraBase
 from ramodels.mo import MOBase
 from structlog import get_logger
@@ -116,32 +115,3 @@ class ModelClientBase(Generic[ModelBase]):
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore
         await self.async_httpx_client.aclose()
-
-    # Fix for accidental breaking change in minor
-
-    async def request(self, *args: Any, **kwargs: Any) -> Response:
-        return await self.async_httpx_client.request(*args, **kwargs)
-
-    async def send(self, *args: Any, **kwargs: Any) -> Response:
-        return await self.async_httpx_client.send(*args, **kwargs)
-
-    async def get(self, *args: Any, **kwargs: Any) -> Response:
-        return await self.async_httpx_client.get(*args, **kwargs)
-
-    async def options(self, *args: Any, **kwargs: Any) -> Response:
-        return await self.async_httpx_client.options(*args, **kwargs)
-
-    async def head(self, *args: Any, **kwargs: Any) -> Response:
-        return await self.async_httpx_client.head(*args, **kwargs)
-
-    async def post(self, *args: Any, **kwargs: Any) -> Response:
-        return await self.async_httpx_client.post(*args, **kwargs)
-
-    async def put(self, *args: Any, **kwargs: Any) -> Response:
-        return await self.async_httpx_client.put(*args, **kwargs)
-
-    async def patch(self, *args: Any, **kwargs: Any) -> Response:
-        return await self.async_httpx_client.patch(*args, **kwargs)
-
-    async def delete(self, *args: Any, **kwargs: Any) -> Response:
-        return await self.async_httpx_client.delete(*args, **kwargs)
