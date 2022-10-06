@@ -22,6 +22,8 @@ include:
   - project: 'labs/salt-automation'
     ref: 'master'
     file: '/gitlab-ci-templates/common/autopub.v1.yml'
+  - project: 'labs/salt-automation'
+    file: "/gitlab-ci-templates/python/pypi.v1.yml"
 
 workflow:
   rules:
@@ -52,14 +54,6 @@ workflow:
   stage: test
   script: poetry run pytest tests/ --cov raclients/ --cov-fail-under=60
 
-.deploy-template: &deploy
-  <<: *install-deps
-  image: python:3.8
-  stage: deploy
-  rules:
-    # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
-    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-
 # ---------------------------------------------------------------------------
 # Lint
 # ---------------------------------------------------------------------------
@@ -78,10 +72,3 @@ Test on Python 3.8:
 Test on Python 3.9:
   <<: *test
   image: python:3.9
-
-# ---------------------------------------------------------------------------
-# Deploy
-# ---------------------------------------------------------------------------
-Deploy to PyPI:
-  <<: *deploy
-  script: poetry publish --build -u OS2mo -p $PYPI_PWD
