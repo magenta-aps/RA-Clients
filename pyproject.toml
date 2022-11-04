@@ -10,17 +10,17 @@ repository = "https://git.magenta.dk/rammearkitektur/ra-clients"
 keywords = ["os2mo", "lora"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-more-itertools = "^8.14.0"
+python = "^3.10"
 tqdm = "^4.64.1"
 pydantic = "^1.10.2"
 fastapi = "^0.85.0"
-ramodels = "^11.3.0"
 httpx = "^0.23.0"
 Authlib = "^1.1.0"
 gql = "^3.4.0"
 structlog = "^22.1.0"
 tenacity = "^8.0.1"
+more-itertools = "^9.0.0"
+ramodels = "^12.6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -33,7 +33,7 @@ pytest-cov = "^3.0.0"
 asyncio_mode="auto"
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 warn_return_any = "True"
 warn_unused_configs = "True"
 check_untyped_defs = "True"
