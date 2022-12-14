@@ -11,6 +11,7 @@ from typing import Type
 from typing import Union
 
 from fastapi.encoders import jsonable_encoder
+from pydantic import AnyHttpUrl
 from ramodels.mo import ClassWrite
 from ramodels.mo import Employee
 from ramodels.mo import OrganisationUnit
@@ -26,6 +27,7 @@ from ramodels.mo.details import Manager
 from ramodels.mo.details import Role
 
 from raclients.auth import AuthenticatedAsyncHTTPXClient
+from raclients.auth import keycloak_token_endpoint
 from raclients.modelclient.base import ModelClientBase
 
 
@@ -60,10 +62,23 @@ class ModelClient(ModelClientBase[MOBase]):
     }
     async_httpx_client_class = AuthenticatedAsyncHTTPXClient
 
-    def __init__(self, force: bool = False, *args: Any, **kwargs: Any):
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        auth_realm: str,
+        auth_server: AnyHttpUrl,
+        force: bool = False,
+        *args: Any,
+        **kwargs: Any,
+    ):
         """MO ModelClient.
 
         Args:
+            client_id: Keycloak client id used for authentication.
+            client_secret: Keycloak client secret used for authentication.
+            auth_realm: Keycloak auth realm used for authentication.
+            auth_server: URL of the Keycloak server used for authentication.
             force: Bypass MO API validation.
             *args: Positional arguments passed through to ModelClientBase.
             **kwargs: Keyword arguments passed through to ModelClientBase.
@@ -74,12 +89,21 @@ class ModelClient(ModelClientBase[MOBase]):
                 base_url="http://mo:5000",
                 client_id="AzureDiamond",
                 client_secret="hunter2",
-                auth_server=parse_obj_as(AnyHttpUrl,"http://keycloak.example.org/auth"),
+                auth_server=parse_obj_as(AnyHttpUrl,"https://keycloak.example.org/auth"),
                 auth_realm="mordor",
             ) as client:
                 r = await client.upload(objects)
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            *args,
+            client_id=client_id,
+            client_secret=client_secret,
+            token_endpoint=keycloak_token_endpoint(
+                auth_server=auth_server,
+                auth_realm=auth_realm,
+            ),
+            **kwargs,
+        )
         self.force = force
 
     def get_object_url(

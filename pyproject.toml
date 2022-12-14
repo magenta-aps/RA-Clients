@@ -40,12 +40,6 @@ check_untyped_defs = "True"
 disallow_untyped_defs = "True"
 plugins = "pydantic.mypy"
 
-[tool.flake8]
-max-line-length = 88
-exclude = [
-".git", "__pycache__", ".mypy_cache", ".pytest_cache", ".venv", ".gitlab"
-]
-
 [tool.autopub]
 git-username = "MagentaBot"
 git-email = "info@magenta.dk"
