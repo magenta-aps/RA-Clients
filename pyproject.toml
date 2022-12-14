@@ -8,6 +8,7 @@ readme = "README.md"
 homepage = "https://magenta.dk/"
 repository = "https://git.magenta.dk/rammearkitektur/ra-clients"
 keywords = ["os2mo", "lora"]
+include = ["raclients/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
