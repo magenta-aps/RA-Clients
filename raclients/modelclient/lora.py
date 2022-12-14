@@ -27,7 +27,7 @@ class ModelClient(ModelClientBase[LoraBase]):
             base_url="http://mox:8080",
             client_id="AzureDiamond",
             client_secret="hunter2",
-            auth_server=parse_obj_as(AnyHttpUrl,"http://keycloak.example.org/auth"),
+            auth_server=parse_obj_as(AnyHttpUrl,"https://keycloak.example.org/auth"),
             auth_realm="mordor",
         ) as client:
             r = await client.upload(objects)

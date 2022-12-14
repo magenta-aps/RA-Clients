@@ -7,38 +7,40 @@ from unittest.mock import Mock
 from unittest.mock import patch
 
 import pytest
+from pydantic import AnyHttpUrl
+from pydantic import parse_obj_as
 from respx import MockRouter
 
 from raclients.auth import AuthenticatedAsyncHTTPXClient
 from raclients.auth import AuthenticatedHTTPXClient
 from raclients.auth import BaseAuthenticatedClient
+from raclients.auth import keycloak_token_endpoint
 
 
 @pytest.fixture
-def base_client(client_params: dict) -> BaseAuthenticatedClient:
-    return BaseAuthenticatedClient(session=None, **client_params)
+def base_client(oidc_client_params: dict) -> BaseAuthenticatedClient:
+    return BaseAuthenticatedClient(session=None, **oidc_client_params)
 
 
 @pytest.fixture
-def client(client_params: dict) -> Generator[AuthenticatedHTTPXClient, None, None]:
-    with AuthenticatedHTTPXClient(**client_params) as client:
+def client(oidc_client_params: dict) -> Generator[AuthenticatedHTTPXClient, None, None]:
+    with AuthenticatedHTTPXClient(**oidc_client_params) as client:
         yield client
 
 
 @pytest.fixture
 async def async_client(
-    client_params: dict,
+    oidc_client_params: dict,
 ) -> AsyncGenerator[AuthenticatedAsyncHTTPXClient, None]:
-    async with AuthenticatedAsyncHTTPXClient(**client_params) as client:
+    async with AuthenticatedAsyncHTTPXClient(**oidc_client_params) as client:
         yield client
 
 
 def test_authenticated_httpx_client_init(client: AuthenticatedHTTPXClient):
     assert client.client_id == "AzureDiamond"
     assert client.client_secret == "hunter2"
-    assert client.token_endpoint == (
-        "http://keycloak.example.org/auth/realms/mordor/protocol/openid-connect/token"
-    )
+    assert client.token_endpoint == "https://oidc.example.org/oauth2/v2.0/token"
+    assert client.token_endpoint_auth_method == "client_secret_post"
     assert client.metadata["token_endpoint"] == client.token_endpoint
     assert client.metadata["grant_type"] == "client_credentials"
 
@@ -138,12 +140,12 @@ async def test_async_authenticated_httpx_client_fetches_token(
 def test_integration_sends_token_in_request(
     client: AuthenticatedHTTPXClient,
     respx_mock: MockRouter,
-    token_mock: str,
+    oidc_token_mock: str,
 ):
     respx_mock.get(
         "http://www.example.org",
         headers={
-            "Authorization": f"Bearer {token_mock}",
+            "Authorization": f"Bearer {oidc_token_mock}",
         },
     )
 
@@ -155,14 +157,25 @@ def test_integration_sends_token_in_request(
 async def test_integration_async_sends_token_in_request(
     async_client: AuthenticatedAsyncHTTPXClient,
     respx_mock: MockRouter,
-    token_mock: str,
+    oidc_token_mock: str,
 ):
     respx_mock.get(
         "http://www.example.org",
         headers={
-            "Authorization": f"Bearer {token_mock}",
+            "Authorization": f"Bearer {oidc_token_mock}",
         },
     )
 
     response = await async_client.get("http://www.example.org")
     assert response.status_code == 200
+
+
+def test_keycloak_token_endpoint():
+    token_endpoint = keycloak_token_endpoint(
+        auth_server=parse_obj_as(AnyHttpUrl, "https://keycloak.example.org/auth"),
+        auth_realm="mordor",
+    )
+    assert (
+        token_endpoint
+        == "https://keycloak.example.org/auth/realms/mordor/protocol/openid-connect/token"
+    )

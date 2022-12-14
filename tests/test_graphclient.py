@@ -48,7 +48,12 @@ def test_init_client(client_params: dict):
     with GraphQLClient(
         url=url, sync=True, **client_params, httpx_client_kwargs=httpx_client_kwargs
     ) as session:
-        assert session.transport.client_args == {**client_params, **httpx_client_kwargs}
+        assert session.transport.client_args == dict(
+            client_id="AzureDiamond",
+            client_secret="hunter2",
+            token_endpoint="https://keycloak.example.org/auth/realms/mordor/protocol/openid-connect/token",
+            **httpx_client_kwargs,
+        )
 
 
 @pytest.mark.asyncio
@@ -57,7 +62,12 @@ async def test_init_async_client(client_params: dict):
     async with GraphQLClient(
         url=url, **client_params, httpx_client_kwargs=httpx_client_kwargs
     ) as session:
-        assert session.transport.client_args == {**client_params, **httpx_client_kwargs}
+        assert session.transport.client_args == dict(
+            client_id="AzureDiamond",
+            client_secret="hunter2",
+            token_endpoint="https://keycloak.example.org/auth/realms/mordor/protocol/openid-connect/token",
+            **httpx_client_kwargs,
+        )
 
 
 def test_integration_client(

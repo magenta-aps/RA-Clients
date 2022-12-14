@@ -14,9 +14,11 @@ from gql.client import AsyncClientSession
 from gql.client import SyncClientSession
 from gql.transport import AsyncTransport
 from graphql import DocumentNode
+from pydantic import AnyHttpUrl
 
 from raclients.auth import AuthenticatedAsyncHTTPXClient
 from raclients.auth import AuthenticatedHTTPXClient
+from raclients.auth import keycloak_token_endpoint
 from raclients.graph.transport import AsyncHTTPXTransport
 from raclients.graph.transport import HTTPXTransport
 
@@ -30,7 +32,7 @@ class GraphQLClient(GQLClient):
         client_id: str,
         client_secret: str,
         auth_realm: str,
-        auth_server: str,
+        auth_server: AnyHttpUrl,
         *args: Any,
         sync: bool = False,
         httpx_client_kwargs: Optional[Dict[str, Any]] = None,
@@ -60,7 +62,7 @@ class GraphQLClient(GQLClient):
                     client_id="AzureDiamond",
                     client_secret="hunter2",
                     auth_realm="mordor",
-                    auth_server="http://keycloak.example.org:8081/auth",
+                    auth_server="https://keycloak.example.org:8081/auth",
                 )
                 async with client as session:
                     query = gql(
@@ -94,8 +96,10 @@ class GraphQLClient(GQLClient):
             client_args=dict(
                 client_id=client_id,
                 client_secret=client_secret,
-                auth_realm=auth_realm,
-                auth_server=auth_server,
+                token_endpoint=keycloak_token_endpoint(
+                    auth_server=auth_server,
+                    auth_realm=auth_realm,
+                ),
                 **(httpx_client_kwargs or {}),
             ),
         )
