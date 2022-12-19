@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "raclients"
-version = "3.0.1"
+version = "3.0.2"
 description = "Clients for OS2mo/LoRa"
 authors = ["Magenta <info@magenta.dk>"]
 license = "MPL-2.0"
