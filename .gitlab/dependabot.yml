@@ -1,8 +1,11 @@
+# SPDX-FileCopyrightText: Magenta ApS
+#
+# SPDX-License-Identifier: MPL-2.0
 version: 2
 updates:
   - package-ecosystem: pip
     directory: /
     schedule:
-      interval: weekday
-      hours: "0-6"
+      interval: daily
     auto-merge: false
+    rebase-strategy: all
