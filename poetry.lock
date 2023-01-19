@@ -28,8 +28,7 @@ cov = ["attrs[tests]", "coverage-enable-subprocess", "coverage[toml] (>=5.3)"]
 dev = ["attrs[docs,tests]"]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphinxcontrib-towncrier", "towncrier", "zope.interface"]
 tests = ["attrs[tests-no-zope]", "zope.interface"]
-tests-no-zope = ["cloudpickle", "hypothesis", "mypy (>=0.971,<0.990)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "pytest-xdist[psutil]"]
-tests_no_zope = ["cloudpickle", "hypothesis", "mypy (>=0.971,<0.990)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "pytest-xdist[psutil]"]
+tests-no-zope = ["cloudpickle", "cloudpickle", "hypothesis", "hypothesis", "mypy (>=0.971,<0.990)", "mypy (>=0.971,<0.990)", "pympler", "pympler", "pytest (>=4.3.0)", "pytest (>=4.3.0)", "pytest-mypy-plugins", "pytest-mypy-plugins", "pytest-xdist[psutil]", "pytest-xdist[psutil]"]
 
 [[package]]
 name = "Authlib"
@@ -212,7 +211,7 @@ botocore = ["botocore (>=1.21,<2)"]
 dev = ["aiofiles", "aiohttp (>=3.7.1,<3.9.0)", "black (==22.3.0)", "botocore (>=1.21,<2)", "check-manifest (>=0.42,<1)", "flake8 (==3.8.1)", "isort (==4.3.21)", "mock (==4.0.2)", "mypy (==0.910)", "parse (==1.15.0)", "pytest (==6.2.5)", "pytest-asyncio (==0.16.0)", "pytest-console-scripts (==1.3.1)", "pytest-cov (==3.0.0)", "requests (>=2.26,<3)", "requests-toolbelt (>=0.9.1,<1)", "sphinx (>=3.0.0,<4)", "sphinx-argparse (==0.2.5)", "sphinx-rtd-theme (>=0.4,<1)", "types-aiofiles", "types-mock", "types-requests", "urllib3 (>=1.26)", "vcrpy (==4.0.2)", "websockets (>=10,<11)", "websockets (>=9,<10)"]
 requests = ["requests (>=2.26,<3)", "requests-toolbelt (>=0.9.1,<1)", "urllib3 (>=1.26)"]
 test = ["aiofiles", "aiohttp (>=3.7.1,<3.9.0)", "botocore (>=1.21,<2)", "mock (==4.0.2)", "parse (==1.15.0)", "pytest (==6.2.5)", "pytest-asyncio (==0.16.0)", "pytest-console-scripts (==1.3.1)", "pytest-cov (==3.0.0)", "requests (>=2.26,<3)", "requests-toolbelt (>=0.9.1,<1)", "urllib3 (>=1.26)", "vcrpy (==4.0.2)", "websockets (>=10,<11)", "websockets (>=9,<10)"]
-test_no_transport = ["aiofiles", "mock (==4.0.2)", "parse (==1.15.0)", "pytest (==6.2.5)", "pytest-asyncio (==0.16.0)", "pytest-console-scripts (==1.3.1)", "pytest-cov (==3.0.0)", "vcrpy (==4.0.2)"]
+test-no-transport = ["aiofiles", "mock (==4.0.2)", "parse (==1.15.0)", "pytest (==6.2.5)", "pytest-asyncio (==0.16.0)", "pytest-console-scripts (==1.3.1)", "pytest-cov (==3.0.0)", "vcrpy (==4.0.2)"]
 websockets = ["websockets (>=10,<11)", "websockets (>=9,<10)"]
 
 [[package]]
@@ -265,7 +264,7 @@ socks = ["socksio (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "httpx"
-version = "0.23.1"
+version = "0.23.3"
 description = "The next generation HTTP client."
 category = "main"
 optional = false
@@ -1023,8 +1022,8 @@ httpcore = [
     {file = "httpcore-0.16.3.tar.gz", hash = "sha256:c5d6f04e2fc530f39e0c077e6a30caa53f1451096120f1f38b954afd0b17c0cb"},
 ]
 httpx = [
-    {file = "httpx-0.23.1-py3-none-any.whl", hash = "sha256:0b9b1f0ee18b9978d637b0776bfd7f54e2ca278e063e3586d8f01cda89e042a8"},
-    {file = "httpx-0.23.1.tar.gz", hash = "sha256:202ae15319be24efe9a8bd4ed4360e68fde7b38bcc2ce87088d416f026667d19"},
+    {file = "httpx-0.23.3-py3-none-any.whl", hash = "sha256:a211fcce9b1254ea24f0cd6af9869b3d29aba40154e947d2a07bb499b3e310d6"},
+    {file = "httpx-0.23.3.tar.gz", hash = "sha256:9818458eb565bb54898ccb9b8b251a28785dd4a55afbc23d0eb410754fe7d0f9"},
 ]
 identify = [
     {file = "identify-2.5.11-py2.py3-none-any.whl", hash = "sha256:e7db36b772b188099616aaf2accbee122949d1c6a1bac4f38196720d6f9f06db"},
