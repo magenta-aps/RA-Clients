@@ -610,7 +610,7 @@ pyyaml = "*"
 
 [[package]]
 name = "ramodels"
-version = "15.13.0"
+version = "16.2.2"
 description = "Pydantic data models for OS2mo"
 category = "main"
 optional = false
@@ -799,7 +799,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "e25fa5e71a1b29d2e8c88f64f5632cf1db1ca9906acb3efde88210272aad8183"
+content-hash = "1d8f2935e84693a29ce6ccd6911f98787ccc96c0a63e571314d504352caec8b1"
 
 [metadata.files]
 anyio = [
@@ -1317,8 +1317,8 @@ pyyaml_env_tag = [
     {file = "pyyaml_env_tag-0.1.tar.gz", hash = "sha256:70092675bda14fdec33b31ba77e7543de9ddc88f2e5b99160396572d11525bdb"},
 ]
 ramodels = [
-    {file = "ramodels-15.13.0-py3-none-any.whl", hash = "sha256:16971801f7da14abeb098c01c651ced13e807f1003be580057c51da3b1436c2f"},
-    {file = "ramodels-15.13.0.tar.gz", hash = "sha256:51a0adc85246ef14e52a91f3941256121978d9a96e063f71957d28d39fe38199"},
+    {file = "ramodels-16.2.2-py3-none-any.whl", hash = "sha256:ceed76c3f791018aaa786af3632681efbdcdf7a2a9240ca69206384a1de543b5"},
+    {file = "ramodels-16.2.2.tar.gz", hash = "sha256:734f87abf1b39301ae59c8f15196db2bf6c57511919c1ea6bc409b1f62175a2a"},
 ]
 respx = [
     {file = "respx-0.20.1-py2.py3-none-any.whl", hash = "sha256:372f06991c03d1f7f480a420a2199d01f1815b6ed5a802f4e4628043a93bd03e"},
