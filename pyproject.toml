@@ -41,10 +41,6 @@ check_untyped_defs = "True"
 disallow_untyped_defs = "True"
 plugins = "pydantic.mypy"
 
-[tool.autopub]
-git-username = "MagentaBot"
-git-email = "info@magenta.dk"
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
