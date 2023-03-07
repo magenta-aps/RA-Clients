@@ -22,7 +22,7 @@ include:
   - project: 'labs/salt-automation'
     file:
       - gitlab-ci-templates/common/conventional-commits.v1.yml
-      - gitlab-ci-templates/python/pypi.v1.yml
+      - gitlab-ci-templates/python/pypi-cc.v1.yml
 
 workflow:
   rules:
