@@ -20,10 +20,9 @@ stages:
 
 include:
   - project: 'labs/salt-automation'
-    ref: 'master'
-    file: '/gitlab-ci-templates/common/autopub.v1.yml'
-  - project: 'labs/salt-automation'
-    file: "/gitlab-ci-templates/python/pypi.v1.yml"
+    file:
+      - gitlab-ci-templates/common/conventional-commits.v1.yml
+      - gitlab-ci-templates/python/pypi.v1.yml
 
 workflow:
   rules:
