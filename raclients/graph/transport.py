@@ -40,6 +40,7 @@ class BaseHTTPXTransport(Generic[AnyHTTPXClient]):
         url: str,
         client_cls: Type[AnyHTTPXClient],
         client_args: Optional[Dict[str, Any]] = None,
+        enable_logging: bool = False,
     ) -> None:
         """
         HTTPX Transport for GQL.
@@ -53,6 +54,7 @@ class BaseHTTPXTransport(Generic[AnyHTTPXClient]):
         self.client_cls: Type[AnyHTTPXClient] = client_cls
         self.client_args = client_args
         self.client: Optional[AnyHTTPXClient] = None
+        self.enable_logging = enable_logging
 
     @property
     def session(self) -> Optional[AnyHTTPXClient]:
@@ -72,8 +74,9 @@ class BaseHTTPXTransport(Generic[AnyHTTPXClient]):
             raise TransportAlreadyConnected("Transport is already connected")
         self.client = self.client_cls(**(self.client_args or {}))
 
-    @staticmethod
+
     def _construct_payload(
+        self,
         document: DocumentNode,
         variable_values: Optional[Dict[str, Any]] = None,
         operation_name: Optional[str] = None,
@@ -98,7 +101,8 @@ class BaseHTTPXTransport(Generic[AnyHTTPXClient]):
         if operation_name:
             payload["operationName"] = operation_name
 
-        logger.debug({"payload": json.dumps(payload)})
+        if self.enable_logging:
+            logger.debug({"payload": json.dumps(payload)})
 
         return payload
 
@@ -114,7 +118,8 @@ class BaseHTTPXTransport(Generic[AnyHTTPXClient]):
 
         Returns: graphql ExecutionResult, containing the result and potential errors.
         """
-        logger.debug({"response": response.text})
+        if self.enable_logging:
+            logger.debug({"response": response.text})
 
         try:
             result = response.json()
@@ -163,8 +168,9 @@ class HTTPXTransport(BaseHTTPXTransport[httpx.Client], Transport):
         url: str,
         client_cls: Type[httpx.Client] = httpx.Client,
         client_args: Optional[Dict[str, Any]] = None,
+        enable_logging: bool = False,
     ) -> None:
-        super().__init__(url, client_cls, client_args)
+        super().__init__(url, client_cls, client_args, enable_logging)
 
     def connect(self) -> None:
         """
@@ -215,8 +221,9 @@ class AsyncHTTPXTransport(BaseHTTPXTransport[httpx.AsyncClient], AsyncTransport)
         url: str,
         client_cls: Type[httpx.AsyncClient] = httpx.AsyncClient,
         client_args: Optional[Dict[str, Any]] = None,
+        enable_logging: bool = False,
     ) -> None:
-        super().__init__(url, client_cls, client_args)
+        super().__init__(url, client_cls, client_args, enable_logging)
 
     async def connect(self) -> None:
         """

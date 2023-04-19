@@ -36,6 +36,7 @@ class GraphQLClient(GQLClient):
         *args: Any,
         sync: bool = False,
         httpx_client_kwargs: Optional[Dict[str, Any]] = None,
+        enable_logging: bool = False,
         **kwargs: Any,
     ):
         """
@@ -102,6 +103,8 @@ class GraphQLClient(GQLClient):
                 ),
                 **(httpx_client_kwargs or {}),
             ),
+            enable_logging=enable_logging,
+
         )
 
         super().__init__(*args, transport=transport, **kwargs)  # type: ignore[misc]
