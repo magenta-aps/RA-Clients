@@ -21,7 +21,7 @@ gql = "^3.4.0"
 structlog = ">=22.3,<24.0"
 tenacity = "^8.2.2"
 more-itertools = "^9.1.0"
-ramodels = ">=18.5.2,<20.0.0"
+ramodels = ">=18.5.2,<23.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.2"
