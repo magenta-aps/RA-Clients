@@ -625,7 +625,7 @@ pyyaml = "*"
 
 [[package]]
 name = "ramodels"
-version = "22.7.2"
+version = "23.13.0"
 description = "Pydantic data models for OS2mo"
 category = "main"
 optional = false
@@ -804,7 +804,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "32f5923eece40c8cc02677dfef28956ab63068f5b5f95b06d35af3b9669514df"
+content-hash = "2608db94e26de7b4851819210dc31de780587f296a9351bf37f350b321c704d5"
 
 [metadata.files]
 anyio = [
@@ -1329,8 +1329,8 @@ pyyaml-env-tag = [
     {file = "pyyaml_env_tag-0.1.tar.gz", hash = "sha256:70092675bda14fdec33b31ba77e7543de9ddc88f2e5b99160396572d11525bdb"},
 ]
 ramodels = [
-    {file = "ramodels-22.7.2-py3-none-any.whl", hash = "sha256:985faf0e1ee70dcdd2161eed70fd2ff3f360cf251f73476935fd4d1582951486"},
-    {file = "ramodels-22.7.2.tar.gz", hash = "sha256:ba98ea79913e68d48347502c8eb8de974988d495af83b21d94c24d08386ebf9f"},
+    {file = "ramodels-23.13.0-py3-none-any.whl", hash = "sha256:59e87ce66378fcc840e3cffb4c6808d96e4a8bc5a81f59fc3ce2efcaaae0ce07"},
+    {file = "ramodels-23.13.0.tar.gz", hash = "sha256:bb10f60b0ef5bbfc07ab2827ba1cc08ea035457a0a29401733a357f6d5e1430b"},
 ]
 respx = [
     {file = "respx-0.20.1-py2.py3-none-any.whl", hash = "sha256:372f06991c03d1f7f480a420a2199d01f1815b6ed5a802f4e4628043a93bd03e"},
