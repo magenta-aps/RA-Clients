@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Callable
+from typing import cast
 
 import httpx
 import pytest
@@ -33,10 +34,10 @@ def oidc_client_params() -> dict:
 
 
 @pytest.fixture
-def token_mocker(respx_mock: MockRouter) -> Callable[[str], str]:
-    def mocker(token_endpoint: str) -> str:
+def token_mocker(respx_mock: MockRouter) -> Callable[[AnyHttpUrl], str]:
+    def mocker(token_endpoint: AnyHttpUrl) -> str:
         token = "my_token"
-        respx_mock.post(url=token_endpoint).mock(
+        respx_mock.post(url=str(token_endpoint)).mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -52,7 +53,7 @@ def token_mocker(respx_mock: MockRouter) -> Callable[[str], str]:
 
 
 @pytest.fixture
-def token_mock(client_params: dict, token_mocker: Callable[[str], str]) -> str:
+def token_mock(client_params: dict, token_mocker: Callable[[AnyHttpUrl], str]) -> str:
     return token_mocker(
         keycloak_token_endpoint(
             auth_server=client_params["auth_server"],

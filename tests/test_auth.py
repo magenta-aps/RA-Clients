@@ -57,7 +57,7 @@ def test_should_not_fetch_token_if_set(base_client: BaseAuthenticatedClient):
 
 def test_should_not_fetch_token_if_token_endpoint(base_client: BaseAuthenticatedClient):
     base_client.token = None
-    assert base_client.should_fetch_token(base_client.token_endpoint) is False
+    assert base_client.should_fetch_token(str(base_client.token_endpoint)) is False
 
 
 def test_should_not_fetch_token_if_withhold_token(base_client: BaseAuthenticatedClient):
