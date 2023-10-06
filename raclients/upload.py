@@ -32,7 +32,7 @@ def upload_file(
         form = {
             "operations": (
                 "",
-                '{"query": "mutation($file: Upload!) { upload_file( file_store: EXPORTS, file: $file ) }", "variables": {"file": null}}',
+                '{"query": "mutation($file: Upload!) { upload_file( file_store: EXPORTS, file: $file, force: true ) }", "variables": {"file": null}}',
             ),
             "map": ("", '{"file": ["variables.file"]}'),
             "file": (filename_in_mo, file),
