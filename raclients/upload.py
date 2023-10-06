@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from contextlib import contextmanager
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
 from typing import Generator
@@ -68,8 +68,10 @@ def file_uploader(settings: Any, filename: str) -> Generator[str, None, None]:
         auth_realm = "mo"
         mora_base = settings["mora.base"]
 
-    with NamedTemporaryFile() as fp:
-        tmp_filename = fp.name
+    # We use a temporary directory so we can control the file name, as some
+    # programs behaviour depends on the file extension.
+    with TemporaryDirectory() as d:
+        tmp_filename = f"{d}/{filename}"
         yield tmp_filename
         upload_file(
             client_id,
