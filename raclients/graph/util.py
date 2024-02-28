@@ -10,6 +10,10 @@ from graphql import DocumentNode
 from graphql import GraphQLError
 from graphql import Source
 from graphql import SourceLocation
+from tenacity import retry
+from tenacity import Retrying
+from tenacity import stop_after_attempt
+from tenacity import wait_random_exponential
 
 
 def graphql_error_from_dict(d: dict, query: Optional[str] = None) -> GraphQLError:
@@ -74,17 +78,22 @@ async def execute_paged(
     Yields: Objects from pages.
     """
     for offset in itertools.count(step=per_page):
-        result = await gql_session.execute(
-            document,
-            variable_values=dict(
-                limit=per_page,
-                offset=offset,
-                **(variable_values or {}),
-            ),
-            # Return `result` instead of `result.data` so we can access extensions
-            get_execution_result=True,
-            **kwargs,
-        )
+        for attempt in Retrying(
+            wait=wait_random_exponential(multiplier=2, max=30),
+            stop=stop_after_attempt(3),
+        ):
+            with attempt:
+                result = await gql_session.execute(
+                    document,
+                    variable_values=dict(
+                        limit=per_page,
+                        offset=offset,
+                        **(variable_values or {}),
+                    ),
+                    # Return `result` instead of `result.data` so we can access extensions
+                    get_execution_result=True,
+                    **kwargs,
+                )
         for obj in result.data["page"]:
             yield obj
         if result.extensions and result.extensions.get("__page_out_of_range"):
